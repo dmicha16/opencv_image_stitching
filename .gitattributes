@@ -60,4 +60,5 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+*.cpp crlf diff
 #*.cpp crlf diff
