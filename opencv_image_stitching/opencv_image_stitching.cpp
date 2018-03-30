@@ -256,7 +256,6 @@ void matchFeatures(vector<Mat> &images, vector<ImageFeatures> &features,
 
 	int x = keypoints_1[0].pt.x;
 	int y = keypoints_1[0].pt.y;
-
 	WINPAUSE;
 
 	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
