@@ -256,6 +256,7 @@ void matchFeatures(vector<Mat> &images, vector<ImageFeatures> &features,
 
 	int x = keypoints_1[0].pt.x;
 	int y = keypoints_1[0].pt.y;
+
 	WINPAUSE;
 
 	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
@@ -337,7 +338,7 @@ void matchFeatures(vector<Mat> &images, vector<ImageFeatures> &features,
 		for (size_t i = 0; i < my_matches.size(); i++) {
 
 			//The smaller the better
-			if (my_matches[i].distance < 30)
+			//if (my_matches[i].distance < 30)
 				good_matches.push_back(my_matches[i]);
 		}
 
