@@ -20,11 +20,13 @@
 #include "opencv2/core/ocl.hpp"
 
 #include <algorithm>
+#include "Logger.h"
 
 #pragma region namespaces
 using namespace std;
 using namespace cv;
-using namespace cv::detail;;
+using namespace cv::detail;
+using namespace clogging;
 
 #pragma endregion
 
@@ -32,17 +34,24 @@ using namespace cv::detail;;
 #define WINPAUSE system("pause")
 #endif
 
+#define OUTPUT_TRUE 1
+#define ENABLE_LOG 1
+#define LOG(msg) std::cout << msg
+#define LOGLN(msg) std::cout << msg << std::endl
+
 class Pipeline {
 public:
-
-	vector<String> img_names;
-	int num_images;
-	vector<Mat> images;
+	INIT_CLOGGING;
+	
 
 	vector<Mat> readImages(string path);
-	vector<Mat> uploadImages(vector<Mat> images, int num_images, vector<Size> full_img_sizes);
+	vector<Mat> uploadImages(vector<Mat> images, vector<Size> full_img_sizes);
 	Pipeline();
 	~Pipeline();
+
+private:
+	vector<String> img_names;
+	int num_images;
 };
 
  

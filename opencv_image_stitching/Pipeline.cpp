@@ -16,12 +16,14 @@ vector<Mat> Pipeline::readImages(string path) {
 
 	num_images = static_cast <int> (img_names.size());
 	vector<Size> full_img_sizes(num_images);
-	images = uploadImages(images, num_images, full_img_sizes);
+	vector<Mat> images(num_images);
+	images = uploadImages(images, full_img_sizes);
 	return images;
 }
 
-vector<Mat> Pipeline::uploadImages(vector<Mat> images, int num_images, vector<Size> full_img_sizes) {
+vector<Mat> Pipeline::uploadImages(vector<Mat> images, vector<Size> full_img_sizes) {
 
+	num_images = static_cast <int>(images.size());
 	Mat full_img, img;
 	double work_megapix = 0.6;
 	double seam_megapix = 0.1;
@@ -56,7 +58,6 @@ vector<Mat> Pipeline::uploadImages(vector<Mat> images, int num_images, vector<Si
 	}
 	full_img.release();
 	img.release();
-
 	return images;
 }
 

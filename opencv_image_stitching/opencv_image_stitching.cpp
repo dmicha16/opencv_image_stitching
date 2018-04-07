@@ -40,372 +40,372 @@
 //
 //
 //M*/
-#include "stdafx.h"
-#include <iostream>
-#include <fstream>
-#include <string>
-#include "opencv2/opencv_modules.hpp"
-#include <opencv2/features2d/features2d.hpp>
-#include <opencv2/core/utility.hpp>
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/stitching/detail/autocalib.hpp"
-#include "opencv2/stitching/detail/blenders.hpp"
-#include "opencv2/stitching/detail/timelapsers.hpp"
-#include "opencv2/stitching/detail/camera.hpp"
-#include "opencv2/stitching/detail/exposure_compensate.hpp"
-#include "opencv2/stitching/detail/matchers.hpp"
-#include "opencv2/stitching/detail/motion_estimators.hpp"
-#include "opencv2/stitching/detail/seam_finders.hpp"
-#include "opencv2/stitching/detail/warpers.hpp"
-#include "opencv2/stitching/warpers.hpp"
-#include "opencv2/core/ocl.hpp"
-
-#include <algorithm>
-#include "Logger.h"
-
-#pragma region macro_definitions
-#ifdef _WIN32
-#define WINPAUSE system("pause")
-#endif
-
-#define OUTPUT_TRUE 1
-#define ENABLE_LOG 1
-#define LOG(msg) std::cout << msg
-#define LOGLN(msg) std::cout << msg << std::endl
-
-#pragma endregion
-
-#pragma region namespaces
-using namespace std;
-using namespace cv;
-using namespace cv::detail;
-using namespace clogging;
-
-#pragma endregion
-
-#pragma region param_declerations
-INIT_CLOGGING;
-// Default command line args
-vector<String> img_names;
-bool preview = false;
-bool try_cuda = true; //for dedicated GPU-s
-double work_megapix = 0.6;
-double seam_megapix = 0.1;
-double compose_megapix = -1;
-float conf_thresh = 0.5f; //default 1.f
-string features_type = "orb"; //default surf, but it doesn't work
-string matcher_type = "affine"; //def: homography
-string estimator_type = "homography";
-string ba_cost_func = "ray";
-string ba_refine_mask = "xxxxx";
-bool do_wave_correct = true;
-WaveCorrectKind wave_correct = detail::WAVE_CORRECT_HORIZ;
-bool save_graph = false;
-std::string save_graph_to;
-string warp_type = "spherical";
-int expos_comp_type = ExposureCompensator::GAIN;
-float match_conf = 0.3f;
-string seam_find_type = "no";
-int blend_type = Blender::MULTI_BAND;
-int timelapse_type = Timelapser::AS_IS;
-float blend_strength = 5;
-string result_name = "result.jpg";
-bool timelapse = false;
-int range_width = -1;
-
-double work_scale = 1, seam_scale = 1, compose_scale = 1, seam_work_aspect = 1;
-bool is_work_scale_set = false, is_seam_scale_set = false, is_compose_scale_set = false;
-
-#pragma endregion
-
-vector<String> readImages() {
-	vector<String> photos;
-	//glob("C:/photos/T3A/*.jpg", photos, false);
-	glob("C:/photos/BLADE/*.JPG", photos, false);
-	string file_name = "C:/photos/T4D/KEYPOINTS/test";
-
-	cout << photos.size() << endl;
-	WINPAUSE;
-	for (int i = 0; i < photos.size(); i++) {
-		img_names.push_back(photos[i]);
-	}
-
-	return img_names;
-}
-
-void uploadImages(vector<Mat>& images, int num_images, vector<Size> &full_img_sizes) {
-
-	Mat full_img, img;
-	for (int i = 0; i < num_images; ++i) {
-		full_img = imread(img_names[i]);
-		full_img_sizes[i] = full_img.size();
-
-
-		if (work_megapix < 0) {
-			img = full_img;
-			work_scale = 1;
-			is_work_scale_set = true;
-		}
-		else {
-			if (!is_work_scale_set) {
-				work_scale = min(1.0, sqrt(work_megapix * 1e6 / full_img.size().area()));
-				is_work_scale_set = true;
-			}
-			resize(full_img, img, Size(), work_scale, work_scale, INTER_LINEAR_EXACT);
-		}
-		if (!is_seam_scale_set) {
-			seam_scale = min(1.0, sqrt(seam_megapix * 1e6 / full_img.size().area()));
-			seam_work_aspect = seam_scale / work_scale;
-			is_seam_scale_set = true;
-		}
-
-
-		images[i] = img.clone();
-	}
-	full_img.release();
-	img.release();
-}
-
-void findFeatures(vector<ImageFeatures> &features, vector<Mat> &images,
-	vector<Size> &full_img_sizes, int num_images, vector<vector<KeyPoint>> &key_points_vector,
-	vector<KeyPoint> &key_points, vector<ImageFeatures> &features_new) {
-	LOGLN("Finding features...");
-
-	Ptr<FeaturesFinder> finder = makePtr<OrbFeaturesFinder>();
-
-	string features_out = "Features in image #";
-	string new_features = "Number of features after ORB recustruct: ";
-	for (int i = 0; i < num_images; ++i) {
-
-		features_out = "Features in image #";
-		new_features = "Number of features after ORB recustruct: ";
-		vector<Mat> featureimages(num_images);
-		try {
-			(*finder)(images[i], features[i]);
-		}
-		catch (const std::exception& e) {
-			cout << e.what() << endl;
-			WINPAUSE;
-		}
-		
-		features[i].img_idx = i;
-		features_out += to_string(i + 1) + ": " + to_string(features[i].keypoints.size());
-		CLOG(features_out, Verbosity::INFO);
-		LOGLN("Features in image #" << i + 1 << ": " << features[i].keypoints.size());
-
-		float scaleFactor = 1.2f;
-		int nlevels = 8;
-		int edgeThreshold = 31;
-		int firstLevel = 0;
-		int WTA_K = 2;
-		int scoreType = ORB::HARRIS_SCORE;
-		int patchSize = 31;
-		int fastThreshold = 20;
-
-		Ptr<ORB> detector, extractor;
-		
-		extractor = ORB::create();
-		detector = ORB::create(features[i].keypoints.size(), scaleFactor, nlevels, edgeThreshold,
-			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
-
-		try {
-			detector->detect(images[i], features_new[i].keypoints);
-			extractor->compute(images[i], features_new[i].keypoints, features_new[i].descriptors);
-		}
-		catch (const std::exception& e) {
-			cout << e.what() << endl;
-		}
-
-		cout << features[i].keypoints.size() << endl;
-		cout << features_new[i].keypoints.size() << endl;
-
-
-		WINPAUSE;
-		
-		
-		/*Mat img_keypoints;
-		key_points_vector.push_back(key_points);
-		drawKeypoints(images[i], key_points, img_keypoints, Scalar::all(-1), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-		Mat img_keypoints_small;
-		resize(img_keypoints, img_keypoints_small, Size(), 0.4, 0.4, INTER_LINEAR_EXACT);
-		imshow("Key points detected", img_keypoints_small);		
-		waitKey(0);*/
-	}
-	finder->collectGarbage();
-}
-
-void matchFeatures(vector<Mat> &images, vector<ImageFeatures> &features,
-	int num_images, vector<ImageFeatures> &features_new) {
-
-	vector<MatchesInfo> pairwise_matches(num_images);
-	Mat output_img;
-	String output_location = "C:/photos/matching_output/test_";
-
-	Ptr<FeaturesMatcher> current_matcher;
-	Mat img_1 = images[0];
-	Mat img_2 = images[1];
-
-	vector<KeyPoint> keypoints_1 = features_new[0].keypoints;
-	vector<KeyPoint> keypoints_2 = features_new[1].keypoints;
-	
-
-	for (size_t i = 0; i < keypoints_1.size(); i++) {
-		cout << "keypoints_1[" << i << "]: " << keypoints_1[i].pt;
-	}
-
-	int x = keypoints_1[0].pt.x;
-	int y = keypoints_1[0].pt.y;
-
-	WINPAUSE;
-
-	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
-	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(keypoints_2.size());
-
-	CLOG(keypoints_features_1, Verbosity::INFO);
-	CLOG(keypoints_features_2, Verbosity::INFO);
-
-	vector<DMatch> my_matches;
-	vector<DMatch> good_matches;
-	int avarage = 0, max = 0, min = 80;
-
-	for (size_t i = 0; i < 3; i++) {
-
-		my_matches.clear();
-		good_matches.clear();		
-
-		output_location = "C:/photos/matching_output/test_";
-		output_location = output_location + to_string(i + 1);
-		output_location = output_location + ".jpg";
-		LOG("Pairwise matching\n");
-		CLOG("line");
-
-		switch (i) {
-		case 0:
-			current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
-		case 1:
-			current_matcher = makePtr<BestOf2NearestMatcher>(try_cuda, match_conf);
-		case 2:
-			current_matcher = makePtr<BestOf2NearestRangeMatcher>(range_width, try_cuda, match_conf);
-		default:
-			break;
-		}
-
-		try {
-			(*current_matcher)(features_new, pairwise_matches);
-		}
-		catch (const std::exception& e) {
-			cout << e.what() << endl;
-			CLOG("Matching failed.", Verbosity::ERR);
-			WINPAUSE;
-		}
-
-		string image_length = "Images length: " + to_string(images.size());
-		string keypoints_length_1 = "Keypoints_1 length: " + to_string(keypoints_1.size());
-		string keypoints_length_2 = "Keypoints_2 length: " + to_string(keypoints_2.size());
-
-		CLOG(image_length, Verbosity::INFO);
-		CLOG(keypoints_length_1, Verbosity::INFO);
-		CLOG(keypoints_length_2, Verbosity::INFO);
-
-		cout << "Images length: " << images.size() << endl;
-		//cout << "Keypoints length: " << key_points_vector.size() << endl;
-
-		my_matches = pairwise_matches[1].matches;
-		string dmatches = "DMatches[i]: " + to_string(my_matches.size());
-		CLOG(dmatches, Verbosity::INFO);
-		cout << "DMatches[i]: " << my_matches.size() << endl;
-
-		for (size_t i = 0; i < my_matches.size(); i++) {
-
-			avarage = avarage + my_matches[i].distance;
-			if (my_matches[i].distance > max) {
-				max = my_matches[i].distance;
-			}
-			if (my_matches[i].distance < min) {
-				min = my_matches[i].distance;
-			}
-		}
-
-		avarage = avarage / my_matches.size();
-		string avrage = "Avarage: " + to_string(avarage);
-		string dist_max = "Distance max: " + to_string(max);
-		string dist_min = "Distance min: " + to_string(min);
-		CLOG(avrage, Verbosity::INFO);
-		CLOG(dist_max, Verbosity::INFO);
-		CLOG(dist_min, Verbosity::INFO);
-
-		for (size_t i = 0; i < my_matches.size(); i++) {
-
-			//The smaller the better
-			//if (my_matches[i].distance < 30)
-				good_matches.push_back(my_matches[i]);
-		}
-
-		cout << "Good matches #:" << good_matches.size() << endl;
-		string good_matches_out = "Good Matches #: " + to_string(good_matches.size());
-		CLOG(good_matches_out, Verbosity::INFO);
-		vector<char> mask(good_matches.size(), 1);
-
-		for (size_t i = 0; i < good_matches.size(); i++) {
-			string msg = "Matches distance i: " + to_string(good_matches[i].distance);
-			string msg1 = "Matches imgIdx i: " + to_string(good_matches[i].imgIdx);
-			string msg2 = "Matches trainIdx i: " + to_string(good_matches[i].trainIdx);
-			string msg3 = "Matches queryIdx i: " + to_string(good_matches[i].queryIdx);
-			CLOG(msg, Verbosity::INFO);
-			CLOG(msg1, Verbosity::INFO);
-			CLOG(msg2, Verbosity::INFO);
-			CLOG(msg3, Verbosity::INFO);
-		}
-
-		try {
-			drawMatches(img_1, keypoints_1, img_2, keypoints_2, good_matches, output_img, Scalar::all(-1),
-				Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-		}
-		catch (const std::exception& e) {
-			cout << e.what() << endl;
-			WINPAUSE;
-			continue;
-		}
-
-		Mat outImg;
-		resize(output_img, outImg, cv::Size(), 1, 1);
-		imshow("Matching", outImg);
-		waitKey(0);
-		WINPAUSE;
-		current_matcher->collectGarbage();
-
-#ifdef OUTPUT_TRUE 1
-		imwrite(output_location, outImg);
-#endif // OUTPUT_TRUE 1
-
-	}
-}
-
-int main() {
-#if ENABLE_LOG
-	int64 app_start_time = getTickCount();
-#endif
-
-	ADD_FILE("clogging.log");
-
-	cv::ocl::setUseOpenCL(false);
-
-	vector<String> images_names = readImages();
-	int num_images = static_cast <int> (images_names.size());
-
-	vector<ImageFeatures> features(num_images);
-	vector<Mat> images(num_images);
-	vector<vector<KeyPoint>> key_points_vector;
-	vector<Size> full_img_sizes(num_images);
-	vector<KeyPoint> key_points;
-	vector<ImageFeatures> features_new(num_images);
-
-	uploadImages(images, num_images, full_img_sizes);
-	findFeatures(features, images, full_img_sizes, num_images, key_points_vector, key_points, features_new);
-	matchFeatures(images, features, num_images, features_new);
-
-}
+//#include "stdafx.h"
+//#include <iostream>
+//#include <fstream>
+//#include <string>
+//#include "opencv2/opencv_modules.hpp"
+//#include <opencv2/features2d/features2d.hpp>
+//#include <opencv2/core/utility.hpp>
+//#include "opencv2/imgcodecs.hpp"
+//#include "opencv2/highgui.hpp"
+//#include "opencv2/stitching/detail/autocalib.hpp"
+//#include "opencv2/stitching/detail/blenders.hpp"
+//#include "opencv2/stitching/detail/timelapsers.hpp"
+//#include "opencv2/stitching/detail/camera.hpp"
+//#include "opencv2/stitching/detail/exposure_compensate.hpp"
+//#include "opencv2/stitching/detail/matchers.hpp"
+//#include "opencv2/stitching/detail/motion_estimators.hpp"
+//#include "opencv2/stitching/detail/seam_finders.hpp"
+//#include "opencv2/stitching/detail/warpers.hpp"
+//#include "opencv2/stitching/warpers.hpp"
+//#include "opencv2/core/ocl.hpp"
+//
+//#include <algorithm>
+//#include "Logger.h"
+//
+//#pragma region macro_definitions
+//#ifdef _WIN32
+//#define WINPAUSE system("pause")
+//#endif
+//
+//#define OUTPUT_TRUE 1
+//#define ENABLE_LOG 1
+//#define LOG(msg) std::cout << msg
+//#define LOGLN(msg) std::cout << msg << std::endl
+//
+//#pragma endregion
+//
+//#pragma region namespaces
+//using namespace std;
+//using namespace cv;
+//using namespace cv::detail;
+//using namespace clogging;
+//
+//#pragma endregion
+//
+//#pragma region param_declerations
+//INIT_CLOGGING;
+//// Default command line args
+//vector<String> img_names;
+//bool preview = false;
+//bool try_cuda = true; //for dedicated GPU-s
+//double work_megapix = 0.6;
+//double seam_megapix = 0.1;
+//double compose_megapix = -1;
+//float conf_thresh = 0.5f; //default 1.f
+//string features_type = "orb"; //default surf, but it doesn't work
+//string matcher_type = "affine"; //def: homography
+//string estimator_type = "homography";
+//string ba_cost_func = "ray";
+//string ba_refine_mask = "xxxxx";
+//bool do_wave_correct = true;
+//WaveCorrectKind wave_correct = detail::WAVE_CORRECT_HORIZ;
+//bool save_graph = false;
+//std::string save_graph_to;
+//string warp_type = "spherical";
+//int expos_comp_type = ExposureCompensator::GAIN;
+//float match_conf = 0.3f;
+//string seam_find_type = "no";
+//int blend_type = Blender::MULTI_BAND;
+//int timelapse_type = Timelapser::AS_IS;
+//float blend_strength = 5;
+//string result_name = "result.jpg";
+//bool timelapse = false;
+//int range_width = -1;
+//
+//double work_scale = 1, seam_scale = 1, compose_scale = 1, seam_work_aspect = 1;
+//bool is_work_scale_set = false, is_seam_scale_set = false, is_compose_scale_set = false;
+//
+//#pragma endregion
+//
+//vector<String> readImages() {
+//	vector<String> photos;
+//	//glob("C:/photos/T3A/*.jpg", photos, false);
+//	glob("C:/photos/BLADE/*.JPG", photos, false);
+//	string file_name = "C:/photos/T4D/KEYPOINTS/test";
+//
+//	cout << photos.size() << endl;
+//	WINPAUSE;
+//	for (int i = 0; i < photos.size(); i++) {
+//		img_names.push_back(photos[i]);
+//	}
+//
+//	return img_names;
+//}
+//
+//void uploadImages(vector<Mat>& images, int num_images, vector<Size> &full_img_sizes) {
+//
+//	Mat full_img, img;
+//	for (int i = 0; i < num_images; ++i) {
+//		full_img = imread(img_names[i]);
+//		full_img_sizes[i] = full_img.size();
+//
+//
+//		if (work_megapix < 0) {
+//			img = full_img;
+//			work_scale = 1;
+//			is_work_scale_set = true;
+//		}
+//		else {
+//			if (!is_work_scale_set) {
+//				work_scale = min(1.0, sqrt(work_megapix * 1e6 / full_img.size().area()));
+//				is_work_scale_set = true;
+//			}
+//			resize(full_img, img, Size(), work_scale, work_scale, INTER_LINEAR_EXACT);
+//		}
+//		if (!is_seam_scale_set) {
+//			seam_scale = min(1.0, sqrt(seam_megapix * 1e6 / full_img.size().area()));
+//			seam_work_aspect = seam_scale / work_scale;
+//			is_seam_scale_set = true;
+//		}
+//
+//
+//		images[i] = img.clone();
+//	}
+//	full_img.release();
+//	img.release();
+//}
+//
+//void findFeatures(vector<ImageFeatures> &features, vector<Mat> &images,
+//	vector<Size> &full_img_sizes, int num_images, vector<vector<KeyPoint>> &key_points_vector,
+//	vector<KeyPoint> &key_points, vector<ImageFeatures> &features_new) {
+//	LOGLN("Finding features...");
+//
+//	Ptr<FeaturesFinder> finder = makePtr<OrbFeaturesFinder>();
+//
+//	string features_out = "Features in image #";
+//	string new_features = "Number of features after ORB recustruct: ";
+//	for (int i = 0; i < num_images; ++i) {
+//
+//		features_out = "Features in image #";
+//		new_features = "Number of features after ORB recustruct: ";
+//		vector<Mat> featureimages(num_images);
+//		try {
+//			(*finder)(images[i], features[i]);
+//		}
+//		catch (const std::exception& e) {
+//			cout << e.what() << endl;
+//			WINPAUSE;
+//		}
+//		
+//		features[i].img_idx = i;
+//		features_out += to_string(i + 1) + ": " + to_string(features[i].keypoints.size());
+//		CLOG(features_out, Verbosity::INFO);
+//		LOGLN("Features in image #" << i + 1 << ": " << features[i].keypoints.size());
+//
+//		float scaleFactor = 1.2f;
+//		int nlevels = 8;
+//		int edgeThreshold = 31;
+//		int firstLevel = 0;
+//		int WTA_K = 2;
+//		int scoreType = ORB::HARRIS_SCORE;
+//		int patchSize = 31;
+//		int fastThreshold = 20;
+//
+//		Ptr<ORB> detector, extractor;
+//		
+//		extractor = ORB::create();
+//		detector = ORB::create(features[i].keypoints.size(), scaleFactor, nlevels, edgeThreshold,
+//			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
+//
+//		try {
+//			detector->detect(images[i], features_new[i].keypoints);
+//			extractor->compute(images[i], features_new[i].keypoints, features_new[i].descriptors);
+//		}
+//		catch (const std::exception& e) {
+//			cout << e.what() << endl;
+//		}
+//
+//		cout << features[i].keypoints.size() << endl;
+//		cout << features_new[i].keypoints.size() << endl;
+//
+//
+//		WINPAUSE;
+//		
+//		
+//		/*Mat img_keypoints;
+//		key_points_vector.push_back(key_points);
+//		drawKeypoints(images[i], key_points, img_keypoints, Scalar::all(-1), DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+//		Mat img_keypoints_small;
+//		resize(img_keypoints, img_keypoints_small, Size(), 0.4, 0.4, INTER_LINEAR_EXACT);
+//		imshow("Key points detected", img_keypoints_small);		
+//		waitKey(0);*/
+//	}
+//	finder->collectGarbage();
+//}
+//
+//void matchFeatures(vector<Mat> &images, vector<ImageFeatures> &features,
+//	int num_images, vector<ImageFeatures> &features_new) {
+//
+//	vector<MatchesInfo> pairwise_matches(num_images);
+//	Mat output_img;
+//	String output_location = "C:/photos/matching_output/test_";
+//
+//	Ptr<FeaturesMatcher> current_matcher;
+//	Mat img_1 = images[0];
+//	Mat img_2 = images[1];
+//
+//	vector<KeyPoint> keypoints_1 = features_new[0].keypoints;
+//	vector<KeyPoint> keypoints_2 = features_new[1].keypoints;
+//	
+//
+//	for (size_t i = 0; i < keypoints_1.size(); i++) {
+//		cout << "keypoints_1[" << i << "]: " << keypoints_1[i].pt;
+//	}
+//
+//	int x = keypoints_1[0].pt.x;
+//	int y = keypoints_1[0].pt.y;
+//
+//	WINPAUSE;
+//
+//	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
+//	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(keypoints_2.size());
+//
+//	CLOG(keypoints_features_1, Verbosity::INFO);
+//	CLOG(keypoints_features_2, Verbosity::INFO);
+//
+//	vector<DMatch> my_matches;
+//	vector<DMatch> good_matches;
+//	int avarage = 0, max = 0, min = 80;
+//
+//	for (size_t i = 0; i < 3; i++) {
+//
+//		my_matches.clear();
+//		good_matches.clear();		
+//
+//		output_location = "C:/photos/matching_output/test_";
+//		output_location = output_location + to_string(i + 1);
+//		output_location = output_location + ".jpg";
+//		LOG("Pairwise matching\n");
+//		CLOG("line");
+//
+//		switch (i) {
+//		case 0:
+//			current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
+//		case 1:
+//			current_matcher = makePtr<BestOf2NearestMatcher>(try_cuda, match_conf);
+//		case 2:
+//			current_matcher = makePtr<BestOf2NearestRangeMatcher>(range_width, try_cuda, match_conf);
+//		default:
+//			break;
+//		}
+//
+//		try {
+//			(*current_matcher)(features_new, pairwise_matches);
+//		}
+//		catch (const std::exception& e) {
+//			cout << e.what() << endl;
+//			CLOG("Matching failed.", Verbosity::ERR);
+//			WINPAUSE;
+//		}
+//
+//		string image_length = "Images length: " + to_string(images.size());
+//		string keypoints_length_1 = "Keypoints_1 length: " + to_string(keypoints_1.size());
+//		string keypoints_length_2 = "Keypoints_2 length: " + to_string(keypoints_2.size());
+//
+//		CLOG(image_length, Verbosity::INFO);
+//		CLOG(keypoints_length_1, Verbosity::INFO);
+//		CLOG(keypoints_length_2, Verbosity::INFO);
+//
+//		cout << "Images length: " << images.size() << endl;
+//		//cout << "Keypoints length: " << key_points_vector.size() << endl;
+//
+//		my_matches = pairwise_matches[1].matches;
+//		string dmatches = "DMatches[i]: " + to_string(my_matches.size());
+//		CLOG(dmatches, Verbosity::INFO);
+//		cout << "DMatches[i]: " << my_matches.size() << endl;
+//
+//		for (size_t i = 0; i < my_matches.size(); i++) {
+//
+//			avarage = avarage + my_matches[i].distance;
+//			if (my_matches[i].distance > max) {
+//				max = my_matches[i].distance;
+//			}
+//			if (my_matches[i].distance < min) {
+//				min = my_matches[i].distance;
+//			}
+//		}
+//
+//		avarage = avarage / my_matches.size();
+//		string avrage = "Avarage: " + to_string(avarage);
+//		string dist_max = "Distance max: " + to_string(max);
+//		string dist_min = "Distance min: " + to_string(min);
+//		CLOG(avrage, Verbosity::INFO);
+//		CLOG(dist_max, Verbosity::INFO);
+//		CLOG(dist_min, Verbosity::INFO);
+//
+//		for (size_t i = 0; i < my_matches.size(); i++) {
+//
+//			//The smaller the better
+//			//if (my_matches[i].distance < 30)
+//				good_matches.push_back(my_matches[i]);
+//		}
+//
+//		cout << "Good matches #:" << good_matches.size() << endl;
+//		string good_matches_out = "Good Matches #: " + to_string(good_matches.size());
+//		CLOG(good_matches_out, Verbosity::INFO);
+//		vector<char> mask(good_matches.size(), 1);
+//
+//		for (size_t i = 0; i < good_matches.size(); i++) {
+//			string msg = "Matches distance i: " + to_string(good_matches[i].distance);
+//			string msg1 = "Matches imgIdx i: " + to_string(good_matches[i].imgIdx);
+//			string msg2 = "Matches trainIdx i: " + to_string(good_matches[i].trainIdx);
+//			string msg3 = "Matches queryIdx i: " + to_string(good_matches[i].queryIdx);
+//			CLOG(msg, Verbosity::INFO);
+//			CLOG(msg1, Verbosity::INFO);
+//			CLOG(msg2, Verbosity::INFO);
+//			CLOG(msg3, Verbosity::INFO);
+//		}
+//
+//		try {
+//			drawMatches(img_1, keypoints_1, img_2, keypoints_2, good_matches, output_img, Scalar::all(-1),
+//				Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+//		}
+//		catch (const std::exception& e) {
+//			cout << e.what() << endl;
+//			WINPAUSE;
+//			continue;
+//		}
+//
+//		Mat outImg;
+//		resize(output_img, outImg, cv::Size(), 1, 1);
+//		imshow("Matching", outImg);
+//		waitKey(0);
+//		WINPAUSE;
+//		current_matcher->collectGarbage();
+//
+//#ifdef OUTPUT_TRUE 1
+//		imwrite(output_location, outImg);
+//#endif // OUTPUT_TRUE 1
+//
+//	}
+//}
+//
+//int main() {
+//#if ENABLE_LOG
+//	int64 app_start_time = getTickCount();
+//#endif
+//
+//	ADD_FILE("clogging.log");
+//
+//	cv::ocl::setUseOpenCL(false);
+//
+//	vector<String> images_names = readImages();
+//	int num_images = static_cast <int> (images_names.size());
+//
+//	vector<ImageFeatures> features(num_images);
+//	vector<Mat> images(num_images);
+//	vector<vector<KeyPoint>> key_points_vector;
+//	vector<Size> full_img_sizes(num_images);
+//	vector<KeyPoint> key_points;
+//	vector<ImageFeatures> features_new(num_images);
+//
+//	uploadImages(images, num_images, full_img_sizes);
+//	findFeatures(features, images, full_img_sizes, num_images, key_points_vector, key_points, features_new);
+//	matchFeatures(images, features, num_images, features_new);
+//
+//}
 
 
 //	LOG("Pairwise matching\n");

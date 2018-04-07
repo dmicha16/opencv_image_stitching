@@ -1,6 +1,5 @@
+#pragma once
 #include "CameraParameters.h"
-
-
 
 CameraParameters::CameraParameters() {
 }
