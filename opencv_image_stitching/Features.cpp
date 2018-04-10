@@ -74,6 +74,7 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	int range_width = -1;
 
 	vector<MatchesInfo> pairwise_matches(num_images);
+	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
 	Mat output_img;
 	String output_location = "C:/photos/matching_output/test_";
 
@@ -87,8 +88,6 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	int x = keypoints_1[0].pt.x;
 	int y = keypoints_1[0].pt.y;
 
-	WINPAUSE;
-
 	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
 	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(keypoints_2.size());
 
@@ -97,9 +96,6 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 
 	vector<DMatch> my_matches;
 	vector<DMatch> good_matches;
-
-	my_matches.clear();
-	good_matches.clear();
 
 	output_location = "C:/photos/matching_output/test_";
 	output_location = output_location + ".jpg";
@@ -126,12 +122,12 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	CLOG(keypoints_length_2, Verbosity::INFO);
 
 	cout << "Images length: " << inc_images.size() << endl;
-	//cout << "Keypoints length: " << key_points_vector.size() << endl;
-
+	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
+	WINPAUSE;
 	my_matches = pairwise_matches[1].matches;
 
 	vector<float> matches_distance;
-	int threshold = sortDistances(my_matches, 0.25);
+	int threshold = setThreshold(my_matches, 0.25);
 	for (size_t i = 0; i < my_matches.size(); i++) {
 
 		//The smaller the better
@@ -176,14 +172,12 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 		WINPAUSE;
 }
 
-int Features::sortDistances(vector<DMatch> my_matches, float desired_percentage) {
+int Features::setThreshold(vector<DMatch> my_matches, float desired_percentage) {
 
 	float threshold = 0;
 	vector<int> distances(my_matches.size());
 	for (size_t i = 0; i < my_matches.size(); i++)
 		distances.push_back(my_matches[i].distance);
-
-	//sort(distances.end(), distances.begin());
 
 	string dmatches = "DMatches[i]: " + to_string(my_matches.size());
 	int avarage = 0, max = 0, min = 80;
@@ -191,7 +185,6 @@ int Features::sortDistances(vector<DMatch> my_matches, float desired_percentage)
 	cout << "DMatches[i]: " << my_matches.size() << endl;
 
 	for (size_t i = 0; i < my_matches.size(); i++) {
-
 		avarage = avarage + my_matches[i].distance;
 		if (my_matches[i].distance > max) {
 			max = my_matches[i].distance;
