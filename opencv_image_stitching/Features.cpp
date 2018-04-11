@@ -75,8 +75,6 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 
 	vector<MatchesInfo> pairwise_matches(num_images);
 	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
-	Mat output_img;
-	String output_location = "C:/photos/matching_output/test_";
 
 	Ptr<FeaturesMatcher> current_matcher;
 	Mat img_1 = inc_images[0];
@@ -97,8 +95,6 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	vector<DMatch> my_matches;
 	vector<DMatch> good_matches;
 
-	output_location = "C:/photos/matching_output/test_";
-	output_location = output_location + ".jpg";
 	LOG("Pairwise matching\n");
 	CLOG("line");
 
@@ -127,10 +123,9 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	my_matches = pairwise_matches[1].matches;
 
 	vector<float> matches_distance;
-	int threshold = setThreshold(my_matches, 0.25);
+	int threshold = setThreshold(my_matches, 0.56);
 	for (size_t i = 0; i < my_matches.size(); i++) {
 
-		//The smaller the better
 		if (my_matches[i].distance < threshold)
 			good_matches.push_back(my_matches[i]);
 	}
@@ -138,7 +133,6 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	cout << "Good matches #:" << good_matches.size() << endl;
 	string good_matches_out = "Good Matches #: " + to_string(good_matches.size());
 	CLOG(good_matches_out, Verbosity::INFO);
-	vector<char> mask(good_matches.size(), 1);
 
 	for (size_t i = 0; i < good_matches.size(); i++) {
 		string msg = "Matches distance i: " + to_string(good_matches[i].distance);
@@ -151,25 +145,8 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 		CLOG(msg3, Verbosity::INFO);
 	}
 
-	try {
-		drawMatches(img_1, keypoints_1, img_2, keypoints_2, good_matches, output_img, Scalar::all(-1),
-			Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-	}
-	catch (const std::exception& e) {
-		cout << e.what() << endl;
-		WINPAUSE;
-	}
-
-	Mat outImg;
-	resize(output_img, outImg, cv::Size(), 1, 1);
-	imshow("Matching", outImg);
-	waitKey(0);
+	matchesDraw(img_1, keypoints_1, img_2, keypoints_2, good_matches);
 	current_matcher->collectGarbage();
-
-#ifdef OUTPUT_TRUE 1
-		imwrite(output_location, outImg);
-#endif // OUTPUT_TRUE 1
-		WINPAUSE;
 }
 
 int Features::setThreshold(vector<DMatch> my_matches, float desired_percentage) {
@@ -213,6 +190,34 @@ int Features::setThreshold(vector<DMatch> my_matches, float desired_percentage) 
 	WINPAUSE;
 	
 	return static_cast<int>(threshold);
+}
+
+void Features::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, vector<KeyPoint> keypoints_2, vector<DMatch> good_matches) {
+
+	String output_location = "C:/photos/matching_output/test_";
+	output_location = "C:/photos/matching_output/test_";
+	output_location = output_location + ".jpg";
+
+	vector<char> mask(good_matches.size(), 1);
+	Mat output_img;
+
+	try {
+		drawMatches(img_1, keypoints_1, img_2, keypoints_2, good_matches, output_img, Scalar::all(-1),
+			Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+	}
+	catch (const std::exception& e) {
+		cout << e.what() << endl;
+		WINPAUSE;
+	}
+
+	Mat outImg;
+	resize(output_img, outImg, cv::Size(), 1, 1);
+	imshow("Matching", outImg);
+	waitKey(0);
+
+	imwrite(output_location, outImg);
+
+	WINPAUSE;
 }
 
 vector<KeyPoint> Features::returnKeyPoints(vector<KeyPoint> filtered_keypoints) {
