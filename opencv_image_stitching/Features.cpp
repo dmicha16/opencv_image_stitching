@@ -148,6 +148,33 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 
 	matchesDraw(img_1, keypoints_1, img_2, keypoints_2, good_matches);
 	current_matcher->collectGarbage();
+	createImageSubset(features_new, pairwise_matches, inc_images);
+}
+
+void Features::createImageSubset(vector<ImageFeatures> &features_new, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
+
+	float conf_thresh = 1.f;
+	int num_images = static_cast <int>(inc_images.size());
+
+	vector<int> indices = leaveBiggestComponent(features_new, pairwise_matches, conf_thresh);
+	vector<Mat> img_subset;
+	vector<String> img_names_subset;
+	vector<Size> full_img_sizes_subset;
+
+	for (size_t i = 0; i < indices.size(); ++i) {
+		img_subset.push_back(inc_images[indices[i]]);
+	}
+
+	inc_images = img_subset;
+
+	// Check if we still have enough images
+	num_images = static_cast<int>(inc_images.size());
+	cout << "num_images: " << num_images << endl;
+	WINPAUSE;
+	if (num_images < 2) {
+		LOGLN("Need more images");
+		WINPAUSE;
+	}
 }
 
 int Features::setThreshold(vector<DMatch> my_matches, float desired_percentage) {

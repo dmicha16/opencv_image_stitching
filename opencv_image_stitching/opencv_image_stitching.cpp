@@ -1,4 +1,4 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
+///*M///////////////////////////////////////////////////////////////////////////////////////
 //
 //  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
 //
@@ -406,8 +406,8 @@
 //	matchFeatures(images, features, num_images, features_new);
 //
 //}
-
-
+//
+//
 //	LOG("Pairwise matching\n");
 //
 //	vector<MatchesInfo> pairwise_matches;
@@ -837,4 +837,3 @@
 //	}
 //	return 0;
 //}
-//
