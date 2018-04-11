@@ -76,15 +76,11 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	vector<MatchesInfo> pairwise_matches;
 	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
 
-	Ptr<FeaturesMatcher> current_matcher;
 	Mat img_1 = inc_images[0];
 	Mat img_2 = inc_images[1];
 
 	vector<KeyPoint> keypoints_1 = features_new[0].keypoints;
 	vector<KeyPoint> keypoints_2 = features_new[1].keypoints;
-
-	int x = keypoints_1[0].pt.x;
-	int y = keypoints_1[0].pt.y;
 
 	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
 	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(keypoints_2.size());
@@ -98,10 +94,10 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	LOG("Pairwise matching\n");
 	CLOG("line");
 
-	current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
+	Ptr<FeaturesMatcher> current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
 
 	try {
-		(*current_matcher)(features_new, pairwise_matches);
+		(*current_matcher)(features_new, pairwise_matches);	
 	}
 	catch (const std::exception& e) {
 		cout << e.what() << endl;
@@ -120,6 +116,9 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	cout << "Images length: " << inc_images.size() << endl;
 	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
 	WINPAUSE;
+	
+	displayPairWisematches(pairwise_matches);
+
 	my_matches = pairwise_matches[1].matches;
 
 	int threshold = setThreshold(my_matches, 0.25);
@@ -149,7 +148,7 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	createImageSubset(features_new, pairwise_matches, inc_images);
 }
 
-void Features::createImageSubset(vector<ImageFeatures> &features_new, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
+vector<Mat> Features::createImageSubset(vector<ImageFeatures> &features_new, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
 
 	float conf_thresh = 1.f;
 	int num_images = static_cast <int>(inc_images.size());
@@ -173,6 +172,8 @@ void Features::createImageSubset(vector<ImageFeatures> &features_new, vector<Mat
 		LOGLN("Need more images");
 		WINPAUSE;
 	}
+
+	return inc_images;
 }
 
 int Features::setThreshold(vector<DMatch> my_matches, float desired_percentage) {
@@ -243,6 +244,19 @@ void Features::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, v
 
 	imwrite(output_location, outImg);
 
+	WINPAUSE;
+}
+
+void Features::displayPairWisematches(vector<MatchesInfo> pairwise_matches) {
+
+	for (size_t i = 0; i < pairwise_matches.size(); i++) {
+		cout << "dst_img_indx: " << pairwise_matches[i].dst_img_idx << endl;
+		cout << "confidence: " << pairwise_matches[i].confidence << endl;
+		cout << "H: " << pairwise_matches[i].H << endl;
+		//cout << "inliers_mask[i]: " << pairwise_matches[i].inliers_mask[i] << endl;
+		cout << "num_inliers: " << pairwise_matches[i].num_inliers << endl;
+		cout << "-------------" << endl;
+	}
 	WINPAUSE;
 }
 
