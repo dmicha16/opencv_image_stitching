@@ -6,7 +6,7 @@ Pipeline::Pipeline() {
 vector<Mat> Pipeline::readImages(string path) {
 	vector<String> photos;
 	glob(path, photos, false);
-	string file_name = "C:/photos/T4D/KEYPOINTS/test";
+	//string file_name = "C:/photos/T4D/KEYPOINTS/test";
 
 	cout << photos.size() << endl;
 	WINPAUSE;
