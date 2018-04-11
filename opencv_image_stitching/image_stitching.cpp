@@ -1,5 +1,6 @@
 #include "Pipeline.h"
 #include "Features.h"
+#include "CameraParameters.h"
 
 INIT_CLOGGING;
 
@@ -12,5 +13,7 @@ int main() {
 	string path = "C:/photos/BLADE/*.JPG";
 	vector<Mat> images = pipeline.readImages(path);
 
+	CameraParameters camera_params(images);
 	Features features(images);
+	
 }

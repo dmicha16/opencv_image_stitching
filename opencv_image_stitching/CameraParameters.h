@@ -3,7 +3,16 @@
 class CameraParameters :
 	public Pipeline {
 public:
-	CameraParameters();
+
+	CameraParameters(vector<Mat> images);
+	vector<Mat> returnDistCoef();
+	vector<Mat> returnCamera();
+	vector<Mat> returnUndistortedImages();
 	~CameraParameters();
+
+private:
+	vector<Mat> undist_images;
+	Mat dist_coef;
+	Mat camera;
 };
 
