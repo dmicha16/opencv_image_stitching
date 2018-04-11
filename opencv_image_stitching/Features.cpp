@@ -73,7 +73,7 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	bool try_cuda = false;
 	int range_width = -1;
 
-	vector<MatchesInfo> pairwise_matches(num_images);
+	vector<MatchesInfo> pairwise_matches;
 	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
 
 	Ptr<FeaturesMatcher> current_matcher;
@@ -91,6 +91,7 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 
 	CLOG(keypoints_features_1, Verbosity::INFO);
 	CLOG(keypoints_features_2, Verbosity::INFO);
+
 
 	vector<DMatch> my_matches;
 	vector<DMatch> good_matches;
@@ -123,7 +124,7 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	my_matches = pairwise_matches[1].matches;
 
 	vector<float> matches_distance;
-	int threshold = setThreshold(my_matches, 0.56);
+	int threshold = setThreshold(my_matches, 0.25);
 	for (size_t i = 0; i < my_matches.size(); i++) {
 
 		if (my_matches[i].distance < threshold)
