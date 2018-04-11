@@ -14,6 +14,7 @@ int main() {
 	vector<Mat> images = pipeline.readImages(path);
 
 	CameraParameters camera_params(images);
-	Features features(images);
+	vector<Mat> undistorted_images = camera_params.returnUndistortedImages();
+	Features features(undistorted_images);
 	
 }

@@ -11,7 +11,7 @@ public:
 	~CameraParameters();
 
 private:
-	vector<Mat> undist_images;
+	vector<Mat> undist_images_clone;
 	Mat dist_coef;
 	Mat camera;
 };

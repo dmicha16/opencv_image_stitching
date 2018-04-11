@@ -92,7 +92,6 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	CLOG(keypoints_features_1, Verbosity::INFO);
 	CLOG(keypoints_features_2, Verbosity::INFO);
 
-
 	vector<DMatch> my_matches;
 	vector<DMatch> good_matches;
 
@@ -123,7 +122,6 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	WINPAUSE;
 	my_matches = pairwise_matches[1].matches;
 
-	vector<float> matches_distance;
 	int threshold = setThreshold(my_matches, 0.25);
 	for (size_t i = 0; i < my_matches.size(); i++) {
 
