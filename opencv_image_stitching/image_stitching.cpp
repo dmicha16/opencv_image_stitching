@@ -3,11 +3,11 @@
 #include "CameraParameters.h"
 #include "Warping.h"
 
-//INIT_CLOGGING;
+INIT_CLOGGING;
 
 int main() {
 
-	//ADD_FILE("clogging.log");
+	ADD_FILE("clogging.log");
 	cv::ocl::setUseOpenCL(false);
 
 	Pipeline pipeline;
