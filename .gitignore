@@ -260,3 +260,6 @@ paket-files/
 __pycache__/
 *.pyc
 /opencv_image_stitching/json.hpp
+*.props
+*.filters
+*.vcxproj
