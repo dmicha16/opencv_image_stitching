@@ -13,7 +13,12 @@ public:
 private:
 	vector<Mat> undist_images_clone;
 	Mat dist_coef;
-	Mat R;
+	Mat R; 
+	Mat K; 
+	double aspect;
+	double ppx;
+	double ppy;
+	Mat t;
 	vector<CameraParams> cameras_temp;
 };
 
