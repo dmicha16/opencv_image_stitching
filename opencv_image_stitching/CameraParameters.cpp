@@ -4,7 +4,13 @@
 CameraParameters::CameraParameters(vector<Mat> images) {
 
 	dist_coef = (Mat_<double>(5, 1) << 4.375478934563331e-05, 4.403608673838324e-05, 2.935527496986621e-05, 3.351971854648422e-06, 6.29700209050618e-05);
-	R = (Mat_<double>(3, 3) << 6401.891293682877, 0, 2.958184954287773, 0, 11509.41847923992, 4.334193404838331, 0, 0, 1);
+	K = (Mat_<double>(3, 3) << 6401.891293682877, 0, 2.958184954287773, 0, 11509.41847923992, 4.334193404838331, 0, 0, 1);
+	R = (Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
+	t = (Mat_<double>(1, 3) << 0, 0, 0); //note that this might be Mat_<double>(3,1)... shitty documentation as usual so if it doesn't work then this might be it
+	aspect = (36805/36965);
+	ppx = 2719.6;
+	ppy = 1827.5;
+	focal = 3680.5; //another uncertain value. I don't quite know which focal length they want here
 
 	vector<Mat> undist_images(images.size());
 	vector<CameraParams> cameras(images.size());
@@ -17,8 +23,14 @@ CameraParameters::CameraParameters(vector<Mat> images) {
 	}
 
 	for (size_t i = 0; i < images.size(); ++i) {
-		cameras[i].R.convertTo(R, CV_32F);
+		cameras[i].R.convertTo(R, CV_32F); //I don't think you need this. It's just to convert the values in the Mat to floats, and they're already doubles
 		cameras[i].R = R;
+		cameras[i].K = K;
+		cameras[i].t = t;
+		cameras[i].ppx = ppx;
+		cameras[i].ppy = ppy;
+		cameras[i].focal = focal;
+		cameras[i].aspect = aspect;
 	}
 
 	for (size_t i = 0; i < cameras.size(); i++) {
