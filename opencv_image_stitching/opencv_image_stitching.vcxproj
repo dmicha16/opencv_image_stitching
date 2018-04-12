@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CameraParameters.h" />
+    <ClInclude Include="Composition.h" />
     <ClInclude Include="ExposureComp.h" />
     <ClInclude Include="Features.h" />
     <ClInclude Include="Logger.h" />
@@ -162,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraParameters.cpp" />
+    <ClCompile Include="Composition.cpp" />
     <ClCompile Include="ExposureComp.cpp" />
     <ClCompile Include="Features.cpp" />
     <ClCompile Include="image_stitching.cpp" />
