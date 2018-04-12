@@ -3,14 +3,14 @@
 
 CameraParameters::CameraParameters(vector<Mat> images) {
 
-	dist_coef = (Mat_<double>(5, 1) << 4.375478934563331e-05, 4.403608673838324e-05, 2.935527496986621e-05, 3.351971854648422e-06, 6.29700209050618e-05);
-	K = (Mat_<double>(3, 3) << 6401.891293682877, 0, 2.958184954287773, 0, 11509.41847923992, 4.334193404838331, 0, 0, 1);
+	dist_coef = (Mat_<double>(5, 1) << -0.1231, 0.0660, -2.2759e-04, -0.0036, -0.0040);
+	K = (Mat_<double>(3, 3) << 3713.62144680322, 0, 2722.06620618404, 0, 3694.94103056275, 1838.15786367077, 0, 0, 1);
 	R = (Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
 	t = (Mat_<double>(1, 3) << 0, 0, 0); //note that this might be Mat_<double>(3,1)... shitty documentation as usual so if it doesn't work then this might be it
-	aspect = (36805/36965);
-	ppx = 2719.6;
-	ppy = 1827.5;
-	focal = 3680.5; //another uncertain value. I don't quite know which focal length they want here
+	aspect = (3.6949/3.7136);
+	ppx = 2.7221e+03;
+	ppy = 1.8382e+03;
+	focal = 3.7000e+03; //another uncertain value. I don't quite know which focal length they want here
 
 	vector<Mat> undist_images(images.size());
 	vector<CameraParams> cameras(images.size());
