@@ -43,7 +43,7 @@ class Pipeline {
 public:
 	INIT_CLOGGING;
 	
-
+	vector<String> returnImageNames();
 	vector<Mat> readImages(string path);
 	vector<Mat> uploadImages(vector<Mat> images, vector<Size> full_img_sizes);
 	Pipeline();

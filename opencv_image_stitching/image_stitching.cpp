@@ -13,6 +13,7 @@ int main() {
 	Pipeline pipeline;
 	string path = "C:/photos/BLADE/*.JPG";
 	vector<Mat> images = pipeline.readImages(path);
+	vector<String> img_names = pipeline.returnImageNames();
 
 	CameraParameters camera_params(images);
 	vector<Mat> undistorted_images = camera_params.returnUndistortedImages();

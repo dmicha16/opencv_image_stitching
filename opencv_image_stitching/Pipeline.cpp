@@ -21,6 +21,10 @@ vector<Mat> Pipeline::readImages(string path) {
 	return images;
 }
 
+vector<String> Pipeline::returnImageNames() {
+	return img_names;
+}
+
 vector<Mat> Pipeline::uploadImages(vector<Mat> images, vector<Size> full_img_sizes) {
 
 	num_images = static_cast <int>(images.size());
