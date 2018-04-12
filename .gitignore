@@ -263,4 +263,3 @@ __pycache__/
 *.props
 *.filters
 *.vcxproj
-*.cpp
