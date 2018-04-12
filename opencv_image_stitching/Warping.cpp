@@ -1,8 +1,10 @@
 #include "Warping.h"
 
 Warping::Warping(vector<CameraParams> cameras, vector<Mat> images) {
-	double work_scale = 1, seam_scale = 1, compose_scale = 1, seam_work_aspect = 1;
+	cout << endl << "Beginning Warping" << endl;
+	double seam_work_aspect = 1;
 	total_warper(cameras, images, seam_work_aspect);
+	cout << "Warping has been performed" << endl;
 }
 
 void Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, double seam_work_aspect) {
@@ -22,8 +24,10 @@ void Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, dou
 	Ptr<WarperCreator> warper_creator;
 	warper_creator = makePtr<cv::AffineWarper>();
 	Ptr<RotationWarper> warper = warper_creator->create(static_cast<float>(warped_image_scale * seam_work_aspect));
-	cout << cameras.size() << endl;
+
+	cout << "cameras.size()" << cameras.size() << endl;
 	WINPAUSE;
+
 	for (int i = 0; i < num_images; ++i) {
 		Mat_<float> K;
 		cameras[i].K().convertTo(K, CV_32F); // Converts an array to another data type with optional scaling. K = output
@@ -34,9 +38,13 @@ void Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, dou
 		corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
 		sizes[i] = images_warped[i].size();
 
-		warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]); // Warps the current image
+		warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]); // Warps the current image. masks_warped[i] is the output
 	}
 	
+	cout << "masks_warped[0].size() = " << masks_warped[0].size() << endl;
+	cout << "masks_warped[1].size() = " << masks_warped[1].size() << endl;
+	WINPAUSE;
+
 	vector<UMat> images_warped_f(num_images);
 	for (int i = 0; i < num_images; ++i) {
 		images_warped[i].convertTo(images_warped_f[i], CV_32F);
@@ -44,29 +52,29 @@ void Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, dou
 	}
 
 	for (size_t i = 0; i < images_warped.size(); i++) {
-		images_warped_temp.push_back(images_warped[i]);
+		this->images_warped_temp.push_back(images_warped[i]);
 	}
 
 	for (size_t i = 0; i < corners.size(); i++) {
-		corners_temp.push_back(corners[i]);
+		this->corners_temp.push_back(corners[i]);
 	}
 
 	for (size_t i = 0; i < images_warped.size(); i++) {
-		masks_warped_temp.push_back(masks_warped[i]);
+		this->masks_warped_temp.push_back(masks_warped[i]);
 	}
 
 }
 
 vector<Point> Warping::returnCorners() {
-	return corners_temp;
+	return this->corners_temp;
 }
 
 vector<UMat> Warping::returnImagesWarped() {
-	return images_warped_temp;
+	return this->images_warped_temp;
 }
 
 vector<UMat> Warping::returnMasksWarped() {
-	return masks_warped_temp;
+	return this->masks_warped_temp;
 }
 
 

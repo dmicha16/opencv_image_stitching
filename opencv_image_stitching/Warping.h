@@ -8,7 +8,6 @@ public:
 	vector<Point> returnCorners();
 	vector<UMat> returnImagesWarped();
 	vector<UMat> returnMasksWarped();
-
 	~Warping();
 
 private:
