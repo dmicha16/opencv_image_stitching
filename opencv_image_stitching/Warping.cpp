@@ -1,38 +1,57 @@
 #include "Warping.h"
 
-Warping::Warping() { 
+Warping::Warping(vector<CameraParams> cameras, vector<Mat> images) {
+	double work_scale = 1, seam_scale = 1, compose_scale = 1, seam_work_aspect = 1;
+	total_warper(cameras, images, seam_work_aspect);
 }
 
-void Warping::set_variables(double seam_scale, double work_scale, float warped_image_scale, float seam_work_aspect, vector<String> img_names) {
-	this->seam_scale = seam_scale;
-	this->work_scale = work_scale;
-	this->warped_image_scale = warped_image_scale;
-	this->seam_work_aspect = seam_work_aspect;
-	this->img_names = img_names;
-	this->num_images = static_cast<int>(img_names.size());
-}
+void Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, double seam_work_aspect) {
+	int num_images = static_cast<int>(images.size());
+	float warped_image_scale = 0;
+	vector<Point> corners(num_images);
+	vector<UMat> masks_warped(num_images);
+	vector<UMat> images_warped(num_images);
+	vector<Size> sizes(num_images);
+	vector<UMat> masks(num_images);
 
-
-bool Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, Mat full_img) {
-
-	vector<Point> corners(this->num_images);
-	vector<UMat> masks_warped(this->num_images);
-	vector<UMat> images_warped(this->num_images);
-	vector<Size> sizes(this->num_images);
-	vector<UMat> masks(this->num_images);
-
-	vector<Size> full_img_sizes(this->num_images);
-	for (int i = 0; i < this->num_images; i++) {
-		full_img_sizes[i] = full_img.size();
+	for (int i = 0; i < num_images; ++i) {
+		masks[i].create(images[i].size(), CV_8U);
+		masks[i].setTo(Scalar::all(255));
 	}
 
 	Ptr<WarperCreator> warper_creator;
 	warper_creator = makePtr<cv::AffineWarper>();
-	Ptr<RotationWarper> warper = warper_creator->create(static_cast<float>(this->warped_image_scale * this->seam_work_aspect));
+	Ptr<RotationWarper> warper = warper_creator->create(static_cast<float>(warped_image_scale * seam_work_aspect));
+	cout << cameras.size() << endl;
+	WINPAUSE;
+	for (int i = 0; i < num_images; ++i) {
+		Mat_<float> K;
+		cameras[i].K().convertTo(K, CV_32F); // Converts an array to another data type with optional scaling. K = output
+		float swa = (float)seam_work_aspect;
+		K(0, 0) *= swa; K(0, 2) *= swa;
+		K(1, 1) *= swa; K(1, 2) *= swa;
 
-	vector<UMat> images_warped_f = _warperish_func(warper, cameras, images);
+		corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
+		sizes[i] = images_warped[i].size();
 
-	Ptr<ExposureCompensator> compensator = ExposureCompensator::createDefault(this->expos_comp_type);
+		warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]); // Warps the current image
+	}
+	
+	vector<UMat> images_warped_f(num_images);
+	for (int i = 0; i < num_images; ++i) {
+		images_warped[i].convertTo(images_warped_f[i], CV_32F);
+		cout << images_warped[i].size() << endl;
+	}
+
+	for (size_t i = 0; i < images_warped.size(); i++) {
+		images_warped_temp.push_back(images_warped[i]);
+	}
+
+	for (size_t i = 0; i < corners.size(); i++) {
+		corners_temp.push_back(corners[i]);
+	}
+
+	/*Ptr<ExposureCompensator> compensator = ExposureCompensator::createDefault(this->expos_comp_type);
 	compensator->feed(corners, images_warped, masks_warped);
 
 	Ptr<SeamFinder> seam_finder;
@@ -153,49 +172,18 @@ bool Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, Mat
 		blender->blend(result, result_mask);
 
 		imwrite("Stitched output", result);
-	}
-
-	return 0;
+	}*/
 }
 
-
-vector<UMat> Warping::_warperish_func(Ptr<RotationWarper> warper, vector<CameraParams> cameras, vector<Mat> images) {
-
-	vector<Point> corners(this->num_images);
-	vector<UMat> masks_warped(this->num_images);
-	vector<UMat> images_warped(this->num_images);
-	vector<Size> sizes(this->num_images);
-	vector<UMat> masks(this->num_images);
-
-	for (int i = 0; i < this->num_images; ++i)
-	{
-		Mat_<float> K;
-		cameras[i].K().convertTo(K, CV_32F); // Converts an array to another data type with optional scaling. K = output
-		float swa = (float)this->seam_work_aspect;
-		K(0, 0) *= swa; K(0, 2) *= swa;
-		K(1, 1) *= swa; K(1, 2) *= swa;
-
-		corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
-		sizes[i] = images_warped[i].size();
-
-		warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]); // Warps the current image
-	}
-
-	vector<UMat> images_warped_f(num_images);
-	for (int i = 0; i < num_images; ++i) {
-		images_warped[i].convertTo(images_warped_f[i], CV_32F);
-	}
-	return images_warped;
+vector<Point> Warping::returnCorners() {
+	return corners_temp;
 }
 
-void Warping::_set_compose_scale(Mat full_img) {
-	if (this->compose_megapix > 0) {
-		this->compose_scale = min(1.0, sqrt(this->compose_megapix * 1e6 / full_img.size().area()));
-	}
-	this->is_compose_scale_set = true;
+vector<UMat> Warping::returnImagesWarped() {
+	return images_warped_temp;
 }
 
-vector<Point> Warping::_update_corner(vector<Point> corners, vector<Size> full_img_sizes, vector<CameraParams> cameras, Ptr<RotationWarper> warper) {
+/*vector<Point> Warping::returnCorners(vector<Point> corners, vector<Size> img_sizes, vector<CameraParams> cameras, Ptr<RotationWarper> warper) {
 	for (int i = 0; i < this->num_images; ++i) {
 		// Update intrinsics
 		cameras[i].focal *= this->compose_work_aspect;
@@ -203,10 +191,10 @@ vector<Point> Warping::_update_corner(vector<Point> corners, vector<Size> full_i
 		cameras[i].ppy *= this->compose_work_aspect;
 
 		// Update corner and size
-		Size sz = full_img_sizes[i];
+		Size sz = img_sizes[i];
 		if (std::abs(this->compose_scale - 1) > 1e-1) {
-			sz.width = cvRound(full_img_sizes[i].width * this->compose_scale);
-			sz.height = cvRound(full_img_sizes[i].height * this->compose_scale);
+			sz.width = cvRound(img_sizes[i].width * this->compose_scale);
+			sz.height = cvRound(img_sizes[i].height * this->compose_scale);
 		}
 
 		Mat K;
@@ -238,6 +226,7 @@ vector<Size> Warping::_update_sizes(vector<Size> sizes, vector<Size> full_img_si
 	}
 	return sizes;
 }
+*/
 
 
 Warping::~Warping() {

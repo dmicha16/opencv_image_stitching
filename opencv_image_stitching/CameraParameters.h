@@ -6,13 +6,14 @@ public:
 
 	CameraParameters(vector<Mat> images);
 	vector<Mat> returnDistCoef();
-	vector<Mat> returnCamera();
+	vector<CameraParams> returnCamera();
 	vector<Mat> returnUndistortedImages();
 	~CameraParameters();
 
 private:
 	vector<Mat> undist_images_clone;
 	Mat dist_coef;
-	Mat camera;
+	Mat R;
+	vector<CameraParams> cameras_temp;
 };
 
