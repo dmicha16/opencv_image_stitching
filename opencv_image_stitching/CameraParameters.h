@@ -18,6 +18,7 @@ private:
 	double aspect;
 	double ppx;
 	double ppy;
+	double focal;
 	Mat t;
 	vector<CameraParams> cameras_temp;
 };
