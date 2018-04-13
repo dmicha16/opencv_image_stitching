@@ -2,6 +2,7 @@
 #include "Features.h"
 #include "CameraParameters.h"
 #include "Warping.h"
+#include "Composition.h"
 
 INIT_CLOGGING;
 
@@ -17,7 +18,7 @@ int main() {
 
 	CameraParameters camera_params(images);
 	vector<Mat> undistorted_images = camera_params.returnUndistortedImages();
-	//Features features(undistorted_images);
+	Features features(undistorted_images);
 
 	vector<CameraParams> cameras = camera_params.returnCamera();
 	Warping warping(cameras, undistorted_images);
@@ -28,6 +29,8 @@ int main() {
 	catch (const std::exception& e) {
 		cout << e.what() << endl;
 	}
+
+	Ptr<detail::BundleAdjusterBase> adjuster;
 	WINPAUSE;
 	waitKey(0);
 	
