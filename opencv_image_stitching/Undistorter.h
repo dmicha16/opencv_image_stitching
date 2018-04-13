@@ -3,7 +3,6 @@
 class Undistorter :
 	public Wrapper {
 public:
-
 	Undistorter();	
 	~Undistorter();
 
@@ -13,7 +12,6 @@ protected:
 	Mat full_img, img;
 
 private:
-
 	vector<Mat> read_images_(string path);
 	void undistort_images_(vector<Mat> images);
 	vector<Mat> upload_images_(vector<Mat> images, vector<Size> full_img_sizes);

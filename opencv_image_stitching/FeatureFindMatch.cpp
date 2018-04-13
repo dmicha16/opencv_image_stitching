@@ -1,19 +1,14 @@
 #include "FeatureFindMatch.h"
 
-FeatureFindMatch::FeatureFindMatch(vector<Mat> inc_images) {
-
-	vector<ImageFeatures> features(inc_images.size());
-	vector<ImageFeatures> features_new(inc_images.size());
-
-	vector<Mat> images_local = findFeatures(inc_images, features, features_new);
-	matchFeatures(images_local, features, features_new);
+FeatureFindMatch::FeatureFindMatch() {
 }
 
-vector<Mat> FeatureFindMatch::findFeatures(vector<Mat> inc_images, vector<ImageFeatures> &features, vector<ImageFeatures> &features_new) {
-	int num_images = static_cast <int>(inc_images.size());
+void FeatureFindMatch::find_features(vector<Mat> inc_images) {
+	num_images = static_cast <int>(inc_images.size());
+	features.resize(num_images);
+	strict_features.resize(num_images);
 	Ptr<FeaturesFinder> finder = makePtr<OrbFeaturesFinder>();
 
-	cout << num_images << endl;
 	string features_out = "Features in image #";
 	string new_features = "Number of features after ORB recustruct: ";
 
@@ -50,25 +45,24 @@ vector<Mat> FeatureFindMatch::findFeatures(vector<Mat> inc_images, vector<ImageF
 			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
 		try {
-			detector->detect(inc_images[i], features_new[i].keypoints);
-			extractor->compute(inc_images[i], features_new[i].keypoints, features_new[i].descriptors);
+			detector->detect(inc_images[i], strict_features[i].keypoints);
+			extractor->compute(inc_images[i], strict_features[i].keypoints, strict_features[i].descriptors);
 		}
 		catch (const std::exception& e) {
 			cout << e.what() << endl;
 		}
 
 		cout << features[i].keypoints.size() << endl;
-		cout << features_new[i].keypoints.size() << endl;
+		cout << strict_features[i].keypoints.size() << endl;
 		WINPAUSE;
 
 	}
 	finder->collectGarbage();
-	return inc_images;
+	match_features_(inc_images, features, strict_features);
 }
 
-void FeatureFindMatch::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &features, vector<ImageFeatures> &features_new) {
+void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatures> features, vector<ImageFeatures> strict_features) {
 
-	int num_images = static_cast <int>(inc_images.size());
 	float match_conf = 0.3f;
 	bool try_cuda = false;
 	int range_width = -1;
@@ -79,8 +73,8 @@ void FeatureFindMatch::matchFeatures(vector<Mat> inc_images, vector<ImageFeature
 	Mat img_1 = inc_images[0];
 	Mat img_2 = inc_images[1];
 
-	vector<KeyPoint> keypoints_1 = features_new[0].keypoints;
-	vector<KeyPoint> keypoints_2 = features_new[1].keypoints;
+	vector<KeyPoint> keypoints_1 = strict_features[0].keypoints;
+	vector<KeyPoint> keypoints_2 = strict_features[1].keypoints;
 
 	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
 	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(keypoints_2.size());
@@ -97,7 +91,7 @@ void FeatureFindMatch::matchFeatures(vector<Mat> inc_images, vector<ImageFeature
 	Ptr<FeaturesMatcher> current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
 
 	try {
-		(*current_matcher)(features_new, pairwise_matches);	
+		(*current_matcher)(strict_features, pairwise_matches);	
 	}
 	catch (const std::exception& e) {
 		cout << e.what() << endl;
@@ -145,15 +139,15 @@ void FeatureFindMatch::matchFeatures(vector<Mat> inc_images, vector<ImageFeature
 
 	matchesDraw(img_1, keypoints_1, img_2, keypoints_2, good_matches);
 	current_matcher->collectGarbage();
-	createImageSubset(features_new, pairwise_matches, inc_images);
+	createImageSubset(strict_features, pairwise_matches, inc_images);
 }
 
-vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &features_new, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
+vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &strict_features, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
 
 	float conf_thresh = 1.f;
 	int num_images = static_cast <int>(inc_images.size());
 
-	vector<int> indices = leaveBiggestComponent(features_new, pairwise_matches, conf_thresh);
+	vector<int> indices = leaveBiggestComponent(strict_features, pairwise_matches, conf_thresh);
 	vector<Mat> img_subset;
 	vector<String> img_names_subset;
 	vector<Size> full_img_sizes_subset;
@@ -258,14 +252,6 @@ void FeatureFindMatch::displayPairWisematches(vector<MatchesInfo> pairwise_match
 		cout << "-------------" << endl;
 	}
 	WINPAUSE;
-}
-
-vector<KeyPoint> FeatureFindMatch::returnKeyPoints(vector<KeyPoint> filtered_keypoints) {
-	return vector<KeyPoint>();
-}
-
-vector<DMatch> FeatureFindMatch::returnMatches(vector<DMatch> filtered_matches) {
-	return vector<DMatch>();
 }
 
 FeatureFindMatch::~FeatureFindMatch() {

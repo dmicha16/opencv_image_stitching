@@ -1,9 +1,11 @@
 #pragma once
 #include "Wrapper.h"
+#include "Undistorter.h"
+
 class Stitcher :
 	public Wrapper {
 public:
-	Stitcher();
+	Stitcher(Undistorter undistorter);
 	~Stitcher();
 };
 
