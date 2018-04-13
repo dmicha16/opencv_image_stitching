@@ -3,16 +3,15 @@
 #include "Undistorter.h"
 #include "Warping.h"
 
-INIT_CLOGGING;
+
 
 int main() {
+	INIT_CLOGGING;
 
 	ADD_FILE("clogging.log");
 	cv::ocl::setUseOpenCL(false);
 
-	string path = "C:/photos/BLADE/*.JPG";
-
-	Undistorter undistorter(path);
+	Undistorter undistorter;
 	//FeatureFindMatch features(undistorted_images);
 
 	//Warping warping(cameras, undistorted_images);

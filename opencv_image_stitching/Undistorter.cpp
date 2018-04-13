@@ -1,7 +1,8 @@
 #pragma once
 #include "Undistorter.h"
 
-Undistorter::Undistorter(string path) {
+Undistorter::Undistorter() {
+	String path = "../opencv_image_stitching/Images/";
 	vector<Mat> images = read_images_(path);
 	undistort_images_(images);
 }
@@ -37,10 +38,16 @@ void Undistorter::undistort_images_(vector<Mat> images) {
 
 vector<Mat> Undistorter::read_images_(string path) {
 	vector<String> photos;
+
+	for (auto & file : experimental::filesystem::directory_iterator(path))
+		cout << file << endl;
+	
 	glob(path, photos, false);
+
 	//string file_name = "C:/photos/T4D/KEYPOINTS/test";
 
 	cout << "Images read: " << photos.size() << endl;
+	WINPAUSE;
 	for (int i = 0; i < photos.size(); i++) {
 		img_names.push_back(photos[i]);
 	}
@@ -54,10 +61,8 @@ vector<Mat> Undistorter::read_images_(string path) {
 
 vector<Mat> Undistorter::upload_images_(vector<Mat> images, vector<Size> full_img_sizes) {
 
-	Mat full_img, img;
 	double work_megapix = 0.6;
 	double seam_megapix = 0.1;
-
 	double work_scale = 1, seam_scale = 1, compose_scale = 1, seam_work_aspect = 1;
 	bool is_work_scale_set = false, is_seam_scale_set = false, is_compose_scale_set = false;
 
@@ -82,8 +87,6 @@ vector<Mat> Undistorter::upload_images_(vector<Mat> images, vector<Size> full_im
 			seam_work_aspect = seam_scale / work_scale;
 			is_seam_scale_set = true;
 		}
-
-
 		images[i] = img.clone();
 	}
 	full_img.release();

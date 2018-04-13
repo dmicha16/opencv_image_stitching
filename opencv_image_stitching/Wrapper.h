@@ -2,6 +2,10 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <algorithm>
+#include <filesystem>
+#include "Logger.h"
+
 #include "opencv2/opencv_modules.hpp"
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/core/utility.hpp>
@@ -19,15 +23,11 @@
 #include "opencv2/stitching/warpers.hpp"
 #include "opencv2/core/ocl.hpp"
 
-#include <algorithm>
-#include "Logger.h"
-
 #pragma region namespaces
 using namespace std;
 using namespace cv;
 using namespace cv::detail;
 using namespace clogging;
-
 #pragma endregion
 
 #ifdef _WIN32
@@ -41,7 +41,7 @@ using namespace clogging;
 
 class Wrapper {
 public:
-	
+	INIT_CLOGGING;
 	Wrapper();
 	~Wrapper();
 };

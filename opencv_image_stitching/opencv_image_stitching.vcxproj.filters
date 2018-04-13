@@ -27,25 +27,22 @@
     <ClInclude Include="Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pipeline.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Features.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Warping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CameraParameters.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ExposureComp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SeamFinding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Composition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Wrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Undistorter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FeatureFindMatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Stitcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -62,28 +59,25 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Pipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Features.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Warping.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraParameters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="image_stitching.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExposureComp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SeamFinding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Composition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Wrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Undistorter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FeatureFindMatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Stitcher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

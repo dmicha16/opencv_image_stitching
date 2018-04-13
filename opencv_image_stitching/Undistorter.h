@@ -4,12 +4,13 @@ class Undistorter :
 	public Wrapper {
 public:
 
-	Undistorter(string path);	
+	Undistorter();	
 	~Undistorter();
 
 protected:
 	int num_images;
 	vector<String> img_names;
+	Mat full_img, img;
 
 private:
 
