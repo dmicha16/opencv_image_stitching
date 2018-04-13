@@ -1,6 +1,6 @@
-#include "Features.h"
+#include "FeatureFindMatch.h"
 
-Features::Features(vector<Mat> inc_images) {
+FeatureFindMatch::FeatureFindMatch(vector<Mat> inc_images) {
 
 	vector<ImageFeatures> features(inc_images.size());
 	vector<ImageFeatures> features_new(inc_images.size());
@@ -9,7 +9,7 @@ Features::Features(vector<Mat> inc_images) {
 	matchFeatures(images_local, features, features_new);
 }
 
-vector<Mat> Features::findFeatures(vector<Mat> inc_images, vector<ImageFeatures> &features, vector<ImageFeatures> &features_new) {
+vector<Mat> FeatureFindMatch::findFeatures(vector<Mat> inc_images, vector<ImageFeatures> &features, vector<ImageFeatures> &features_new) {
 	int num_images = static_cast <int>(inc_images.size());
 	Ptr<FeaturesFinder> finder = makePtr<OrbFeaturesFinder>();
 
@@ -66,7 +66,7 @@ vector<Mat> Features::findFeatures(vector<Mat> inc_images, vector<ImageFeatures>
 	return inc_images;
 }
 
-void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &features, vector<ImageFeatures> &features_new) {
+void FeatureFindMatch::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &features, vector<ImageFeatures> &features_new) {
 
 	int num_images = static_cast <int>(inc_images.size());
 	float match_conf = 0.3f;
@@ -148,7 +148,7 @@ void Features::matchFeatures(vector<Mat> inc_images, vector<ImageFeatures> &feat
 	createImageSubset(features_new, pairwise_matches, inc_images);
 }
 
-vector<Mat> Features::createImageSubset(vector<ImageFeatures> &features_new, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
+vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &features_new, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
 
 	float conf_thresh = 1.f;
 	int num_images = static_cast <int>(inc_images.size());
@@ -176,7 +176,7 @@ vector<Mat> Features::createImageSubset(vector<ImageFeatures> &features_new, vec
 	return inc_images;
 }
 
-int Features::setThreshold(vector<DMatch> my_matches, float desired_percentage) {
+int FeatureFindMatch::setThreshold(vector<DMatch> my_matches, float desired_percentage) {
 
 	float threshold = 0;
 	vector<int> distances(my_matches.size());
@@ -219,7 +219,7 @@ int Features::setThreshold(vector<DMatch> my_matches, float desired_percentage) 
 	return static_cast<int>(threshold);
 }
 
-void Features::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, vector<KeyPoint> keypoints_2, vector<DMatch> good_matches) {
+void FeatureFindMatch::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, vector<KeyPoint> keypoints_2, vector<DMatch> good_matches) {
 
 	String output_location = "C:/photos/matching_output/test_";
 	output_location = "C:/photos/matching_output/test_";
@@ -247,7 +247,7 @@ void Features::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, v
 	WINPAUSE;
 }
 
-void Features::displayPairWisematches(vector<MatchesInfo> pairwise_matches) {
+void FeatureFindMatch::displayPairWisematches(vector<MatchesInfo> pairwise_matches) {
 
 	for (size_t i = 0; i < pairwise_matches.size(); i++) {
 		cout << "dst_img_indx: " << pairwise_matches[i].dst_img_idx << endl;
@@ -260,13 +260,13 @@ void Features::displayPairWisematches(vector<MatchesInfo> pairwise_matches) {
 	WINPAUSE;
 }
 
-vector<KeyPoint> Features::returnKeyPoints(vector<KeyPoint> filtered_keypoints) {
+vector<KeyPoint> FeatureFindMatch::returnKeyPoints(vector<KeyPoint> filtered_keypoints) {
 	return vector<KeyPoint>();
 }
 
-vector<DMatch> Features::returnMatches(vector<DMatch> filtered_matches) {
+vector<DMatch> FeatureFindMatch::returnMatches(vector<DMatch> filtered_matches) {
 	return vector<DMatch>();
 }
 
-Features::~Features() {
+FeatureFindMatch::~FeatureFindMatch() {
 }

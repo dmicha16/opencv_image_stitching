@@ -1,12 +1,12 @@
 #pragma once
 #include "Wrapper.h"
-class Features :
+class FeatureFindMatch :
 	public Wrapper {
 public:
-	Features(vector<Mat> images);
+	FeatureFindMatch(vector<Mat> images);
 	vector<KeyPoint> returnKeyPoints(vector<KeyPoint> filtered_keypoints);
 	vector<DMatch> returnMatches(vector<DMatch> filtered_matches);
-	~Features();
+	~FeatureFindMatch();
 
 private:
 	vector<Mat> findFeatures(vector<Mat> inc_images, vector<ImageFeatures> &features, vector<ImageFeatures> &features_new);

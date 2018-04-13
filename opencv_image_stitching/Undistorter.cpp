@@ -1,7 +1,7 @@
 #pragma once
-#include "CameraParameters.h"
+#include "Undistorter.h"
 
-CameraParameters::CameraParameters(vector<Mat> images) {
+Undistorter::Undistorter(vector<Mat> images) {
 
 	dist_coef = (Mat_<double>(5, 1) << -0.1231, 0.0660, -2.2759e-04, -0.0036, -0.0040);
 	//K = (Mat_<double>(3, 3) << 3713.62144680322, 0, 2722.06620618404, 0, 3694.94103056275, 1838.15786367077, 0, 0, 1); // you cant set K. It's a function in the CameraParams struct
@@ -38,17 +38,17 @@ CameraParameters::CameraParameters(vector<Mat> images) {
 	}
 }
 
-vector<Mat> CameraParameters::returnUndistortedImages() {
+vector<Mat> Undistorter::returnUndistortedImages() {
 	return undist_images_clone;
 }
 
-vector<Mat> CameraParameters::returnDistCoef() {
+vector<Mat> Undistorter::returnDistCoef() {
 	return dist_coef;
 }
 
-vector<CameraParams> CameraParameters::returnCamera() {
+vector<CameraParams> Undistorter::returnCamera() {
 	return cameras_temp;
 }	
 
-CameraParameters::~CameraParameters() {
+Undistorter::~Undistorter() {
 }

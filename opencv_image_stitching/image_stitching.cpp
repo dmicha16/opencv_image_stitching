@@ -1,8 +1,7 @@
 #include "Wrapper.h"
-#include "Features.h"
-#include "CameraParameters.h"
+#include "FeatureFindMatch.h"
+#include "Undistorter.h"
 #include "Warping.h"
-#include "Composition.h"
 
 INIT_CLOGGING;
 
@@ -16,9 +15,9 @@ int main() {
 	vector<Mat> images = wrapper.readImages(path);
 	vector<String> img_names = wrapper.returnImageNames();
 
-	CameraParameters camera_params(images);
+	Undistorter camera_params(images);
 	vector<Mat> undistorted_images = camera_params.returnUndistortedImages();
-	Features features(undistorted_images);
+	FeatureFindMatch features(undistorted_images);
 
 	vector<CameraParams> cameras = camera_params.returnCamera();
 	Warping warping(cameras, undistorted_images);

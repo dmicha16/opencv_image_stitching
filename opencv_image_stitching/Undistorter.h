@@ -1,14 +1,14 @@
 #pragma once
 #include "Wrapper.h"
-class CameraParameters :
+class Undistorter :
 	public Wrapper {
 public:
 
-	CameraParameters(vector<Mat> images);
+	Undistorter(vector<Mat> images);
 	vector<Mat> returnDistCoef();
 	vector<CameraParams> returnCamera();
 	vector<Mat> returnUndistortedImages();
-	~CameraParameters();
+	~Undistorter();
 
 private:
 	vector<Mat> undist_images_clone;
