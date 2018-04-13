@@ -4,22 +4,25 @@ class Undistorter :
 	public Wrapper {
 public:
 
-	Undistorter(vector<Mat> images);
-	vector<Mat> returnDistCoef();
-	vector<CameraParams> returnCamera();
-	vector<Mat> returnUndistortedImages();
+	Undistorter(string path);	
 	~Undistorter();
 
+protected:
+	int num_images;
+	vector<String> img_names;
+
 private:
-	vector<Mat> undist_images_clone;
-	Mat dist_coef;
-	Mat R; 
-	Mat K; 
-	double aspect;
-	double ppx;
-	double ppy;
-	double focal;
-	Mat t;
-	vector<CameraParams> cameras_temp;
+
+	vector<Mat> read_images_(string path);
+	void undistort_images_(vector<Mat> images);
+	vector<Mat> upload_images_(vector<Mat> images, vector<Size> full_img_sizes);
+
+	Mat dist_coef_;
+	Mat R_;  
+	double aspect_;
+	double ppx_;
+	double ppy_;
+	double focal_;
+	Mat t_;
 };
 

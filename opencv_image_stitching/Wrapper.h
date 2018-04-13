@@ -41,17 +41,9 @@ using namespace clogging;
 
 class Wrapper {
 public:
-	INIT_CLOGGING;
 	
-	vector<String> returnImageNames();
-	vector<Mat> readImages(string path);
-	vector<Mat> uploadImages(vector<Mat> images, vector<Size> full_img_sizes);
 	Wrapper();
 	~Wrapper();
-
-private:
-	vector<String> img_names;
-	int num_images;
 };
 
  
