@@ -1,7 +1,7 @@
 #pragma once
-#include "Pipeline.h"
+#include "Wrapper.h"
 class CameraParameters :
-	public Pipeline {
+	public Wrapper {
 public:
 
 	CameraParameters(vector<Mat> images);

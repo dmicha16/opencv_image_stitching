@@ -1,7 +1,7 @@
 #pragma once
-#include "Pipeline.h"
+#include "Wrapper.h"
 class Warping :
-	public Pipeline {
+	public Wrapper {
 public:
 	Warping(vector<CameraParams> cameras, vector<Mat> images);
 	void total_warper(vector<CameraParams> cameras, vector<Mat> images, double seam_work_aspect);

@@ -39,15 +39,15 @@ using namespace clogging;
 #define LOG(msg) std::cout << msg
 #define LOGLN(msg) std::cout << msg << std::endl
 
-class Pipeline {
+class Wrapper {
 public:
 	INIT_CLOGGING;
 	
 	vector<String> returnImageNames();
 	vector<Mat> readImages(string path);
 	vector<Mat> uploadImages(vector<Mat> images, vector<Size> full_img_sizes);
-	Pipeline();
-	~Pipeline();
+	Wrapper();
+	~Wrapper();
 
 private:
 	vector<String> img_names;

@@ -1,9 +1,9 @@
-#include "Pipeline.h"
+#include "Wrapper.h"
 
-Pipeline::Pipeline() {
+Wrapper::Wrapper() {
 }
 
-vector<Mat> Pipeline::readImages(string path) {
+vector<Mat> Wrapper::readImages(string path) {
 	vector<String> photos;
 	glob(path, photos, false);
 	//string file_name = "C:/photos/T4D/KEYPOINTS/test";
@@ -21,11 +21,11 @@ vector<Mat> Pipeline::readImages(string path) {
 	return images;
 }
 
-vector<String> Pipeline::returnImageNames() {
+vector<String> Wrapper::returnImageNames() {
 	return img_names;
 }
 
-vector<Mat> Pipeline::uploadImages(vector<Mat> images, vector<Size> full_img_sizes) {
+vector<Mat> Wrapper::uploadImages(vector<Mat> images, vector<Size> full_img_sizes) {
 
 	num_images = static_cast <int>(images.size());
 	Mat full_img, img;
@@ -65,5 +65,5 @@ vector<Mat> Pipeline::uploadImages(vector<Mat> images, vector<Size> full_img_siz
 	return images;
 }
 
-Pipeline::~Pipeline() {
+Wrapper::~Wrapper() {
 }

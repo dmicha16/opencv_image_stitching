@@ -1,7 +1,7 @@
 #pragma once
-#include "Pipeline.h"
+#include "Wrapper.h"
 class Features :
-	public Pipeline {
+	public Wrapper {
 public:
 	Features(vector<Mat> images);
 	vector<KeyPoint> returnKeyPoints(vector<KeyPoint> filtered_keypoints);

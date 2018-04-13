@@ -1,4 +1,4 @@
-#include "Pipeline.h"
+#include "Wrapper.h"
 #include "Features.h"
 #include "CameraParameters.h"
 #include "Warping.h"
@@ -11,10 +11,10 @@ int main() {
 	ADD_FILE("clogging.log");
 	cv::ocl::setUseOpenCL(false);
 
-	Pipeline pipeline;
+	Wrapper wrapper;
 	string path = "C:/photos/BLADE/*.JPG";
-	vector<Mat> images = pipeline.readImages(path);
-	vector<String> img_names = pipeline.returnImageNames();
+	vector<Mat> images = wrapper.readImages(path);
+	vector<String> img_names = wrapper.returnImageNames();
 
 	CameraParameters camera_params(images);
 	vector<Mat> undistorted_images = camera_params.returnUndistortedImages();
