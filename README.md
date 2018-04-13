@@ -23,3 +23,6 @@ CLOG("message", Verbosity::INFO);
 The log file is in the opencv_image_stitching folder, where you store your local repo. File's called clogging.log. There is a lot more functionality in my logging class so if you want to utalize all that, refer to here: https://github.com/dmicha16/clogging. I hope the readme is clear enough.
 
 Also every time you start working on something make sure to PULL first to avoid any merge issues. If we have any tell me and Ill fix it right away.
+
+
+[The project structure. (just a handdrawn pic for now)](project_structure.jpg)
