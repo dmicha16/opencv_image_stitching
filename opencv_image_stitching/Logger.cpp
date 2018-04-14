@@ -7,22 +7,22 @@ namespace clogging {
 
 	Logger::Logger() {
 		global_init_timestamp_ = std::chrono::high_resolution_clock::now();
-	}
-
+	}	
+	
 	void Logger::AddFile(std::string file_name) {
 
 		global_file_name_ = file_name;
 
 		std::ifstream log_file(file_name);
 
-		if (!log_file) {
+		if (!log_file) {			
 			std::ofstream log_file_create;
 			log_file_create.open(file_name);
-			log_file_create.close();
+			log_file_create.close();			
 		}
 		else
 			SystemInitOutput(file_name);
-		log_file.close();
+		log_file.close();		
 	}
 
 	void Logger::AddFile(std::string file_name, std::string path) {
@@ -40,28 +40,28 @@ namespace clogging {
 			SystemInitOutput(file_name, path);
 		log_file.close();
 	}
-
+	
 	void Logger::Clog(std::string output_msg, Verbosity level, Output specify_type) {
-
+		
 		switch (specify_type) {
-		case 0:
-			TXTSyntax(level, output_msg);
-			break;
-		case 1:
-			JSONSyntax(level, output_msg);
-			break;
-		case 2:
-			TXTSyntax(level, output_msg);
-			JSONSyntax(level, output_msg);
-			break;
-		default:
-			TXTSyntax(level, output_msg);
-			break;
+			case 0:
+				TXTSyntax(level, output_msg);
+				break;
+			case 1:
+				JSONSyntax(level, output_msg);
+				break;
+			case 2:
+				TXTSyntax(level, output_msg);
+				JSONSyntax(level, output_msg);
+				break;
+			default:
+				TXTSyntax(level, output_msg);
+				break;
 		}
 	}
 
 	void Logger::Clog(std::string output_msg, Verbosity level) {
-
+		
 		TXTSyntax(level, output_msg);
 	}
 
@@ -89,7 +89,7 @@ namespace clogging {
 	}
 
 	void Logger::SystemInitOutput(std::string file_name, std::string path) {
-
+		
 		std::ifstream log_file(global_file_name_);
 		log_file.close();
 
@@ -99,7 +99,7 @@ namespace clogging {
 			std::stringstream output_format = SystemInitOutputFormat();
 			log_file_out
 				<< output_format.rdbuf();
-			log_file_out.close();
+				log_file_out.close();
 		}
 	}
 
@@ -138,7 +138,7 @@ namespace clogging {
 			log_file_out.close();
 		}
 	}
-
+	
 	void Logger::TXTSyntax(Verbosity level, std::string output_msg) {
 
 		std::string level_value = EnumStringValue(level);
@@ -150,14 +150,14 @@ namespace clogging {
 
 		std::ofstream log_file_out(global_file_name_, std::ofstream::app);
 
-		if (log_file_out.is_open()) {
-
-			log_file_out
+		if (log_file_out.is_open()) {							
+			
+			log_file_out 
 				<< "[" << current_time << "] "
 				<< "[" << level_value << "] "
 				<< "[" << system_uptime << "] "
 				<< output_msg << std::endl;
-			log_file_out.close();
+			log_file_out.close();			
 		}
 	}
 
@@ -168,10 +168,10 @@ namespace clogging {
 		double system_uptime = TimerObj.SystemUpMillis(global_init_timestamp_);
 
 		json output_json = {
-			{ "timestamp", current_time },
-		{ "verbosity", level_value },
-		{ "output_message", output_msg },
-		{ "system_uptime", system_uptime }
+			{"timestamp", current_time},
+			{"verbosity", level_value},
+			{"output_message", output_msg},
+			{"system_uptime", system_uptime }
 		};
 
 		std::string json_dump = output_json.dump();
@@ -184,9 +184,9 @@ namespace clogging {
 		if (log_file_out.is_open()) {
 
 			log_file_out << json_dump << "\n";
-			log_file_out.close();
+			log_file_out.close();			
 		}
-	}
+	}	
 
 #ifdef CLOG_USE_VS 1
 	void Logger::ClogVS(std::string output_msg, Verbosity level, Output_vs specify_type) {

@@ -27,7 +27,6 @@
 using namespace std;
 using namespace cv;
 using namespace cv::detail;
-using namespace clogging;
 #pragma endregion
 
 #ifdef _WIN32

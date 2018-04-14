@@ -149,24 +149,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="Stitcher.h" />
+    <ClInclude Include="Timer.h" />
     <ClInclude Include="Undistorter.h" />
     <ClInclude Include="Composition.h" />
     <ClInclude Include="FeatureFindMatch.h" />
-    <ClInclude Include="Logger.h" />
     <ClInclude Include="Wrapper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Timer.h" />
     <ClInclude Include="Warping.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Stitcher.cpp" />
+    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Undistorter.cpp" />
     <ClCompile Include="Composition.cpp" />
     <ClCompile Include="FeatureFindMatch.cpp" />
     <ClCompile Include="image_stitching.cpp" />
-    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="opencv_image_stitching.cpp" />
     <ClCompile Include="Wrapper.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -175,7 +176,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Warping.cpp" />
   </ItemGroup>
   <ItemGroup>

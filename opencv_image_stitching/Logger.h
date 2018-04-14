@@ -9,13 +9,13 @@
 
 #ifdef CLOG_USE_VS 1
 	#include <Windows.h>
-	//#define CLOG_VS(output_msg) Logger.ClogVS(output_msg)
+	#define CLOG_VS(output_msg) Logger.ClogVS(output_msg)
 #endif // CLOG_USE_VS 1
 
 //Init clogging macro:
 
-#define INIT_CLOGGING clogging::Logger LoggerObj
-//#define CLOGGING_TIMER Timer TimerObj
+#define INIT_CLOGGING clogging::Logger Logger
+#define CLOGGING_TIMER Timer TimerObj
 
 //Macro overloading:
 
@@ -25,17 +25,17 @@
 #define CLOG(...) GET_MACRO(__VA_ARGS__, CLOG3, CLOG2, CLOG1)(__VA_ARGS__)
 #define CLOG_VS(...) GET_MACRO(__VA_ARGS__, CLOG_VS3, CLOG_VS2, CLOG_VS1)(__VA_ARGS__)
 
-#define CLOG_VS3(output_msg, level, type) LoggerObj.ClogVS(output_msg, level, type)
-#define CLOG_VS2(output_msg, level) LoggerObj.ClogVS(output_msg, level)
-#define CLOG_VS1(output_msg) LoggerObj.ClogVS(output_msg)
+#define CLOG_VS3(output_msg, level, type) Logger.ClogVS(output_msg, level, type)
+#define CLOG_VS2(output_msg, level) Logger.ClogVS(output_msg, level)
+#define CLOG_VS1(output_msg) Logger.ClogVS(output_msg)
 
 #define ADD_FILE3(file_name, path, future_param)
-#define ADD_FILE2(file_name, path) LoggerObj.AddFile(file_name, path)
-#define ADD_FILE1(file_name) LoggerObj.AddFile(file_name)
+#define ADD_FILE2(file_name, path) Logger.AddFile(file_name, path)
+#define ADD_FILE1(file_name) Logger.AddFile(file_name)
 
-#define CLOG3(output_msg, level, type) LoggerObj.Clog(output_msg, level, type)
-#define CLOG2(output_msg, level) LoggerObj.Clog(output_msg, level)
-#define CLOG1(output_msg) LoggerObj.Clog(output_msg)
+#define CLOG3(output_msg, level, type) Logger.Clog(output_msg, level, type)
+#define CLOG2(output_msg, level) Logger.Clog(output_msg, level)
+#define CLOG1(output_msg) Logger.Clog(output_msg)
 
 #define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
