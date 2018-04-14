@@ -15,8 +15,9 @@ int main() {
 	CLOG("test");
 
 	/************************************** TEST FOR FEATURES **************************************/
-	/*FeatureFindMatch finder;
-	finder.find_features(undistorter.img);*/
+	String path = "../opencv_image_stitching/Images/";
+	FeatureFindMatch finder;
+	finder.find_features(undistorter.img);
 	/************************************** TEST FOR FEATURES **************************************/
 
 	//Warping warping(cameras, undistorted_images);

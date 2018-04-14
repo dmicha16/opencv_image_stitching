@@ -16,7 +16,7 @@ void FeatureFindMatch::find_features(vector<Mat> inc_images) {
 
 		features_out = "Features in image #";
 		new_features = "Number of features after ORB recustruct: ";
-		try {
+		/*try {
 			(*finder)(inc_images[i], features[i]);
 		}
 		catch (const std::exception& e) {
@@ -27,7 +27,7 @@ void FeatureFindMatch::find_features(vector<Mat> inc_images) {
 		features[i].img_idx = i;
 		features_out += to_string(i + 1) + ": " + to_string(features[i].keypoints.size());
 		CLOG(features_out, Verbosity::INFO);
-		LOGLN("Features in image #" << i + 1 << ": " << features[i].keypoints.size());
+		LOGLN("Features in image #" << i + 1 << ": " << features[i].keypoints.size());*/
 
 		float scaleFactor = 1.2f;
 		int nlevels = 8;
@@ -38,21 +38,27 @@ void FeatureFindMatch::find_features(vector<Mat> inc_images) {
 		int patchSize = 31;
 		int fastThreshold = 20;
 
-		Ptr<ORB> detector, extractor;
+		/*Ptr<ORB> detector, extractor;*/
+		Ptr<ORB> detector_desciptor;
 
-		extractor = ORB::create();
+		/*extractor = ORB::create();
 		detector = ORB::create(features[i].keypoints.size(), scaleFactor, nlevels, edgeThreshold,
+			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);*/
+
+		detector_desciptor = ORB::create(1500, scaleFactor, nlevels, edgeThreshold,
 			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
 		try {
-			detector->detect(inc_images[i], strict_features[i].keypoints);
-			extractor->compute(inc_images[i], strict_features[i].keypoints, strict_features[i].descriptors);
+			/*detector->detect(inc_images[i], strict_features[i].keypoints);
+			extractor->compute(inc_images[i], strict_features[i].keypoints, strict_features[i].descriptors);*/
+			InputArray mask = noArray();
+			detector_desciptor->detectAndCompute(inc_images[i], mask, strict_features[i].keypoints, strict_features[i].descriptors);
 		}
 		catch (const std::exception& e) {
 			cout << e.what() << endl;
 		}
 
-		cout << features[i].keypoints.size() << endl;
+		/*cout << features[i].keypoints.size() << endl;*/
 		cout << strict_features[i].keypoints.size() << endl;
 		WINPAUSE;
 

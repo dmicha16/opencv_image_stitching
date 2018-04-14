@@ -260,3 +260,5 @@ paket-files/
 __pycache__/
 *.pyc
 /opencv_image_stitching/json.hpp
+/opencv_image_stitching/edu_properties.props
+/opencv_image_stitching/openCV_edu.props
