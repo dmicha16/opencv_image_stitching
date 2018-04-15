@@ -43,6 +43,16 @@ public:
 	INIT_CLOGGING;
 	Wrapper();
 	~Wrapper();
+	vector<Mat> get_images();
+
+protected:
+	int num_images;
+	vector<String> img_names;
+	Mat full_img, img;
+
+private:
+	vector<Mat> read_images_(string path);
+	vector<Mat> upload_images_(vector<Mat> images, vector<Size> full_img_sizes);
 };
 
  

@@ -2,12 +2,12 @@
 #include "Undistorter.h"
 
 Undistorter::Undistorter() {
-	String path = "../opencv_image_stitching/Images/";
-	vector<Mat> images = read_images_(path);
-	undistort_images_(images);
 }
 
-void Undistorter::undistort_images_(vector<Mat> images) {
+vector<Mat> Undistorter::undistort_images(vector<Mat> images) {
+	num_images = static_cast <int> (images.size());
+
+
 	dist_coef_ = (Mat_<double>(5, 1) << -0.1231, 0.0660, -2.2759e-04, -0.0036, -0.0040);
 	//K = (Mat_<double>(3, 3) << 3713.62144680322, 0, 2722.06620618404, 0, 3694.94103056275, 1838.15786367077, 0, 0, 1); // you cant set K. It's a function in the CameraParams struct
 	R_ = (Mat_<double>(3, 3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
@@ -34,64 +34,7 @@ void Undistorter::undistort_images_(vector<Mat> images) {
 		cameras[i].focal = focal_;
 		cameras[i].aspect = aspect_;
 	}
-}
-
-vector<Mat> Undistorter::read_images_(string path) {
-	vector<String> photos;
-
-	for (auto & file : experimental::filesystem::directory_iterator(path))
-		cout << file << endl;
-	
-	glob(path, photos, false);
-
-	//string file_name = "C:/photos/T4D/KEYPOINTS/test";
-
-	cout << "Images read: " << photos.size() << endl;
-	WINPAUSE;
-	for (int i = 0; i < photos.size(); i++) {
-		img_names.push_back(photos[i]);
-	}
-
-	num_images = static_cast <int> (img_names.size());
-	vector<Size> full_img_sizes(num_images);
-	vector<Mat> images(num_images);
-	images = upload_images_(images, full_img_sizes);
-	return images;
-}
-
-vector<Mat> Undistorter::upload_images_(vector<Mat> images, vector<Size> full_img_sizes) {
-
-	double work_megapix = 0.6;
-	double seam_megapix = 0.1;
-	double work_scale = 1, seam_scale = 1, compose_scale = 1, seam_work_aspect = 1;
-	bool is_work_scale_set = false, is_seam_scale_set = false, is_compose_scale_set = false;
-
-	for (int i = 0; i < num_images; ++i) {
-		full_img = imread(img_names[i]);
-		full_img_sizes[i] = full_img.size();
-
-		if (work_megapix < 0) {
-			img = full_img;
-			work_scale = 1;
-			is_work_scale_set = true;
-		}
-		else {
-			if (!is_work_scale_set) {
-				work_scale = min(1.0, sqrt(work_megapix * 1e6 / full_img.size().area()));
-				is_work_scale_set = true;
-			}
-			resize(full_img, img, Size(), work_scale, work_scale, INTER_LINEAR_EXACT);
-		}
-		if (!is_seam_scale_set) {
-			seam_scale = min(1.0, sqrt(seam_megapix * 1e6 / full_img.size().area()));
-			seam_work_aspect = seam_scale / work_scale;
-			is_seam_scale_set = true;
-		}
-		images[i] = img.clone();
-	}
-	full_img.release();
-	img.release();
-	return images;
+	return undist_images;
 }
 
 Undistorter::~Undistorter() {

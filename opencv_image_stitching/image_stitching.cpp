@@ -11,14 +11,31 @@ int main() {
 	ADD_FILE("clogging.log");
 	cv::ocl::setUseOpenCL(false);
 
-	Undistorter undistorter;
 	CLOG("test");
 
-	/************************************** TEST FOR FEATURES **************************************/
-	/*FeatureFindMatch finder;
-	finder.find_features(undistorter.img);*/
-	/************************************** TEST FOR FEATURES **************************************/
+	/******************************************* WRAPPER *******************************************/
+	
+	Wrapper wrapper;
+	vector<Mat> raw_images = wrapper.get_images();
+	
 
+
+	/**************************************** UNDISTORTION *****************************************/
+	
+	//Undistorter undistorter;
+	//vector<Mat> undist_images = undistorter.undistort_images(raw_images);
+	
+	
+
+	/****************************************** FEATURES *******************************************/
+	
+	FeatureFindMatch finder;
+	finder.find_features(raw_images);
+	
+	
+
+	/******************************************* WARPING *******************************************/
+	
 	//Warping warping(cameras, undistorted_images);
 	//vector<UMat> warped_images = warping.returnImagesWarped();
 	/*try {
@@ -28,7 +45,6 @@ int main() {
 		cout << e.what() << endl;
 	}*/
 
+	
 	waitKey(0);
-	
-	
 }

@@ -5,29 +5,13 @@ FeatureFindMatch::FeatureFindMatch() {
 
 void FeatureFindMatch::find_features(vector<Mat> inc_images) {
 	num_images = static_cast <int>(inc_images.size());
-	features.resize(num_images);
-	strict_features.resize(num_images);
-	Ptr<FeaturesFinder> finder = makePtr<OrbFeaturesFinder>();
+	image_features.resize(num_images);
 
 	string features_out = "Features in image #";
-	string new_features = "Number of features after ORB recustruct: ";
 
 	for (int i = 0; i < num_images; ++i) {
 
 		features_out = "Features in image #";
-		new_features = "Number of features after ORB recustruct: ";
-		/*try {
-			(*finder)(inc_images[i], features[i]);
-		}
-		catch (const std::exception& e) {
-			cout << e.what() << endl;
-			WINPAUSE;
-		}
-
-		features[i].img_idx = i;
-		features_out += to_string(i + 1) + ": " + to_string(features[i].keypoints.size());
-		CLOG(features_out, Verbosity::INFO);
-		LOGLN("Features in image #" << i + 1 << ": " << features[i].keypoints.size());*/
 
 		float scaleFactor = 1.2f;
 		int nlevels = 8;
@@ -38,36 +22,30 @@ void FeatureFindMatch::find_features(vector<Mat> inc_images) {
 		int patchSize = 31;
 		int fastThreshold = 20;
 
-		/*Ptr<ORB> detector, extractor;*/
 		Ptr<ORB> detector_desciptor;
-
-		/*extractor = ORB::create();
-		detector = ORB::create(features[i].keypoints.size(), scaleFactor, nlevels, edgeThreshold,
-			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);*/
 
 		detector_desciptor = ORB::create(1500, scaleFactor, nlevels, edgeThreshold,
 			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
 		try {
-			/*detector->detect(inc_images[i], strict_features[i].keypoints);
-			extractor->compute(inc_images[i], strict_features[i].keypoints, strict_features[i].descriptors);*/
 			InputArray mask = noArray();
-			detector_desciptor->detectAndCompute(inc_images[i], mask, strict_features[i].keypoints, strict_features[i].descriptors);
+			detector_desciptor->detectAndCompute(inc_images[i], mask, image_features[i].keypoints, image_features[i].descriptors);
 		}
 		catch (const std::exception& e) {
 			cout << e.what() << endl;
 		}
 
-		/*cout << features[i].keypoints.size() << endl;*/
-		cout << strict_features[i].keypoints.size() << endl;
-		WINPAUSE;
+		image_features[i].img_idx = i;
+		features_out += to_string(i + 1) + ": " + to_string(image_features[i].keypoints.size());
+		CLOG(features_out, Verbosity::INFO);
+		LOGLN(features_out);
 
+		WINPAUSE;
 	}
-	finder->collectGarbage();
-	match_features_(inc_images, features, strict_features);
+	match_features_(inc_images, image_features);
 }
 
-void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatures> features, vector<ImageFeatures> strict_features) {
+void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatures> image_features) {
 
 	float match_conf = 0.3f;
 	bool try_cuda = false;
@@ -79,8 +57,8 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	Mat img_1 = inc_images[0];
 	Mat img_2 = inc_images[1];
 
-	vector<KeyPoint> keypoints_1 = strict_features[0].keypoints;
-	vector<KeyPoint> keypoints_2 = strict_features[1].keypoints;
+	vector<KeyPoint> keypoints_1 = image_features[0].keypoints;
+	vector<KeyPoint> keypoints_2 = image_features[1].keypoints;
 
 	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
 	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(keypoints_2.size());
@@ -97,7 +75,7 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	Ptr<FeaturesMatcher> current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
 
 	try {
-		(*current_matcher)(strict_features, pairwise_matches);	
+		(*current_matcher)(image_features, pairwise_matches);	
 	}
 	catch (const std::exception& e) {
 		cout << e.what() << endl;
@@ -145,15 +123,15 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 
 	matchesDraw(img_1, keypoints_1, img_2, keypoints_2, good_matches);
 	current_matcher->collectGarbage();
-	createImageSubset(strict_features, pairwise_matches, inc_images);
+	createImageSubset(image_features, pairwise_matches, inc_images);
 }
 
-vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &strict_features, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
+vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &image_features, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
 
 	float conf_thresh = 1.f;
 	int num_images = static_cast <int>(inc_images.size());
 
-	vector<int> indices = leaveBiggestComponent(strict_features, pairwise_matches, conf_thresh);
+	vector<int> indices = leaveBiggestComponent(image_features, pairwise_matches, conf_thresh);
 	vector<Mat> img_subset;
 	vector<String> img_names_subset;
 	vector<Size> full_img_sizes_subset;
