@@ -1,18 +1,18 @@
 #include "Wrapper.h"
 
 Wrapper::Wrapper() {
+	String path = "../opencv_image_stitching/Images/";
+	read_images_(path);
 }
 
 Wrapper::~Wrapper() {
 }
 
 vector<Mat> Wrapper::get_images() {
-	String path = "../opencv_image_stitching/Images/";
-	vector<Mat> images = read_images_(path);
 	return images;
 }
 
-vector<Mat> Wrapper::read_images_(string path) {
+void Wrapper::read_images_(string path) {
 	vector<String> photos;
 
 	for (auto & file : experimental::filesystem::directory_iterator(path))
@@ -30,9 +30,9 @@ vector<Mat> Wrapper::read_images_(string path) {
 
 	num_images = static_cast <int> (img_names.size());
 	vector<Size> full_img_sizes(num_images);
-	vector<Mat> images(num_images);
+
+	images.resize(num_images);
 	images = upload_images_(images, full_img_sizes);
-	return images;
 }
 
 vector<Mat> Wrapper::upload_images_(vector<Mat> images, vector<Size> full_img_sizes) {

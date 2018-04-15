@@ -51,7 +51,8 @@ protected:
 	Mat full_img, img;
 
 private:
-	vector<Mat> read_images_(string path);
+	vector<Mat> images;
+	void read_images_(string path);
 	vector<Mat> upload_images_(vector<Mat> images, vector<Size> full_img_sizes);
 };
 
