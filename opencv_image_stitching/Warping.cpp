@@ -5,8 +5,8 @@ Warping::Warping() {
 
 }
 
-void Warping::warp(Mat &image, Point2f features[][2], int vectorSize) {
-	vector_split_(features, vectorSize);
+void Warping::warp(Mat &image, Point2f features[][2]) {
+	vector_split_(features);
 	perspective_warping_(image);
 }
 
@@ -30,12 +30,14 @@ void Warping::perspective_warping_(Mat &img) {
 	cout << "}" << endl << endl;
 }
 
-void Warping::vector_split_(Point2f features[][2], int vectorSize) {
+void Warping::vector_split_(Point2f features[][2]) {
 	cout << "vector_split_() {" << endl << endl;
 
-	for (int i = 0; i < vectorSize; i++) {
-		baseImagePts_.push_back(features[i][0]);
-		dstPts_.push_back(features[i][1]);
+	int i = 0;
+	while (mat[i][0].x > 0) {
+		base_image_pts.push_back(mat[i][0]);
+		dst_pts.push_back(mat[i][1]);
+		i++;
 	}
 	cout << "pts_base_image = " << endl << baseImagePts_ << endl << endl;
 	cout << "pts_dst = " << endl << dstPts_ << endl << endl;
