@@ -3,15 +3,16 @@
 class Warping :
 	public Wrapper {
 public:
-	Warping(vector<CameraParams> cameras, vector<Mat> images);
-	void warp(Mat &image, vector<Point2f> &features);
+	Warping();
+	void warp(Mat &image, Point2f features[][2], int vectorSize);
 	~Warping();
 
 private:
-	void perspective_(Mat &img);
-	void vector_split_(vector<Point2f> &features);
+	void perspective_warping_(Mat &img);
+	void vector_split_(Point2f features[][2], int vectorSize);
 	vector<Point2f> baseImagePts_;
 	vector<Point2f> dstPts_;
+
 protected:
 	Mat warpedImage;
 };
