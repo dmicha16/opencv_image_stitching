@@ -34,9 +34,9 @@ void Warping::vector_split_(Point2f features[][2]) {
 	cout << "vector_split_() {" << endl << endl;
 
 	int i = 0;
-	while (mat[i][0].x > 0) {
-		base_image_pts.push_back(mat[i][0]);
-		dst_pts.push_back(mat[i][1]);
+	while (features[i][0].x > 0) {
+		baseImagePts_.push_back(features[i][0]);
+		dstPts_.push_back(features[i][1]);
 		i++;
 	}
 	cout << "Number of pairwise matches = " << i << endl << endl;
