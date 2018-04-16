@@ -1,82 +1,50 @@
 #include "Warping.h"
+#include <opencv2/opencv.hpp>
 
 Warping::Warping(vector<CameraParams> cameras, vector<Mat> images) {
-	cout << endl << "Beginning Warping" << endl;
-	double seam_work_aspect = 1;
-	total_warper(cameras, images, seam_work_aspect);
-	cout << "Warping has been performed" << endl;
-}
-
-void Warping::total_warper(vector<CameraParams> cameras, vector<Mat> images, double seam_work_aspect) {
-	int num_images = static_cast<int>(images.size());
-	float warped_image_scale = 0;
-	vector<Point> corners(num_images);
-	vector<UMat> masks_warped(num_images);
-	vector<UMat> images_warped(num_images);
-	vector<Size> sizes(num_images);
-	vector<UMat> masks(num_images);
-
-	for (int i = 0; i < num_images; ++i) {
-		masks[i].create(images[i].size(), CV_8U);
-		masks[i].setTo(Scalar::all(255));
-	}
-
-	Ptr<WarperCreator> warper_creator;
-	warper_creator = makePtr<cv::AffineWarper>();
-	Ptr<RotationWarper> warper = warper_creator->create(static_cast<float>(warped_image_scale * seam_work_aspect));
-
-	cout << "cameras.size()" << cameras.size() << endl;
-	WINPAUSE;
-
-	for (int i = 0; i < num_images; ++i) {
-		Mat_<float> K;
-		cameras[i].K().convertTo(K, CV_32F); // Converts an array to another data type with optional scaling. K = output
-		float swa = (float)seam_work_aspect;
-		K(0, 0) *= swa; K(0, 2) *= swa;
-		K(1, 1) *= swa; K(1, 2) *= swa;
-
-		corners[i] = warper->warp(images[i], K, cameras[i].R, INTER_LINEAR, BORDER_REFLECT, images_warped[i]);
-		sizes[i] = images_warped[i].size();
-
-		warper->warp(masks[i], K, cameras[i].R, INTER_NEAREST, BORDER_CONSTANT, masks_warped[i]); // Warps the current image. masks_warped[i] is the output
-	}
-	
-	cout << "masks_warped[0].size() = " << masks_warped[0].size() << endl;
-	cout << "masks_warped[1].size() = " << masks_warped[1].size() << endl;
-	WINPAUSE;
-
-	vector<UMat> images_warped_f(num_images);
-	for (int i = 0; i < num_images; ++i) {
-		images_warped[i].convertTo(images_warped_f[i], CV_32F);
-		cout << images_warped[i].size() << endl;
-	}
-
-	for (size_t i = 0; i < images_warped.size(); i++) {
-		this->images_warped_temp.push_back(images_warped[i]);
-	}
-
-	for (size_t i = 0; i < corners.size(); i++) {
-		this->corners_temp.push_back(corners[i]);
-	}
-
-	for (size_t i = 0; i < images_warped.size(); i++) {
-		this->masks_warped_temp.push_back(masks_warped[i]);
-	}
 
 }
 
-vector<Point> Warping::returnCorners() {
-	return this->corners_temp;
+void Warping::warp(Mat &image, vector<Point2f> &features) {
+	vector_split_(features);
+	perspective_(image);
+
 }
 
-vector<UMat> Warping::returnImagesWarped() {
-	return this->images_warped_temp;
+void Warping::perspective_(Mat &img) {
+	cout << "Perspective() {" << endl << endl;
+
+	cout << "pts_base_image = " << endl << baseImagePts_ << endl << endl;
+	cout << "pts_dst = " << endl << dstPts_ << endl << endl;
+
+	// Find homography
+	Mat h = findHomography(baseImagePts_, dstPts_, RANSAC, 3);
+	cout << '\n' << "homography = " << endl << h << endl << endl;
+
+	// Find the needed canvas size 
+	// There is still some offset error but I think that for our case this will be more then fine, since this warping example is extrem.  
+	int offSetX = h.at<double>(0, 2);
+	int offSetY = h.at<double>(1, 2);
+	cout << "offSetX = " << offSetX << endl;
+	cout << "offSetY = " << offSetY << endl;
+	cout << "}" << endl << endl;
+
+	// Use homography to warp image
+	warpPerspective(img, warpedImage, h, Size(img.cols + offSetX * 1.5, img.rows)); // The offSetX *1.5 (1.5 is just an arbitrary number)  
+
 }
 
-vector<UMat> Warping::returnMasksWarped() {
-	return this->masks_warped_temp;
-}
+void Warping::vector_split_(vector<Point2f> features[2][]) {
+	int matLength = size(features[0]);
+	//cout << "matLength = " << matLength << endl << endl;
 
+	for (int i = 0; i < matLength; i++) {
+		//cout << "mat[0][" << i << "] = " << endl << mat[0][i] << endl;
+		//cout << "mat[1][" << i << "] = " << endl << mat[1][i] << endl << endl;
+		baseImagePts_.push_back(features[0][i]);
+		dstPts_.push_back(features[1][i]);
+	}
+}
 
 Warping::~Warping() {
 }

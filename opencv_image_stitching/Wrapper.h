@@ -23,6 +23,12 @@
 #include "opencv2/stitching/warpers.hpp"
 #include "opencv2/core/ocl.hpp"
 
+
+
+#include <opencv2/core/core.hpp>
+#include "opencv2/imgproc/imgproc.hpp"
+#include <vector>
+
 #pragma region namespaces
 using namespace std;
 using namespace cv;
