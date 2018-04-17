@@ -27,7 +27,7 @@ void ImageReader::read_images_(string path) {
 	//string file_name = "C:/photos/T4D/KEYPOINTS/test";
 
 	cout << "Images read: " << photos.size() << endl;
-	WINPAUSE;
+
 	for (int i = 0; i < photos.size(); i++) {
 		img_names.push_back(photos[i]);
 	}

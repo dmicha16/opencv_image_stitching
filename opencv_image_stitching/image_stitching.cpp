@@ -14,7 +14,7 @@ int main() {
 
 	CLOG("test");
 
-	/******************************************* WRAPPER *******************************************/
+	/******************************************* Reader *******************************************/
 	
 	ImageReader image_reader;
 	vector<Mat> raw_images = image_reader.get_images();
@@ -32,20 +32,13 @@ int main() {
 	
 	FeatureFindMatch finder;
 	finder.find_features(raw_images);
+	MatchedKeyPoint matched_key_points = finder.get_matched_coordinates();
 	
 	
 
 	/******************************************* WARPING *******************************************/
-	
-	//Warping warping(cameras, undistorted_images);
-	//vector<UMat> warped_images = warping.returnImagesWarped();
-	/*try {
-		imshow("warped:", warped_images[1]);
-	}
-	catch (const std::exception& e) {
-		cout << e.what() << endl;
-	}*/
-
+	Warping warper;
+	warper.warp(raw_images[1], matched_key_points);
 	
 	waitKey(0);
 }

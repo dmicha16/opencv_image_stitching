@@ -40,12 +40,11 @@ void FeatureFindMatch::find_features(vector<Mat> inc_images) {
 		CLOG(features_out, Verbosity::INFO);
 		LOGLN(features_out);
 
-		WINPAUSE;
 	}
 	match_features_(inc_images, image_features);
 }
 
-vector<vector<Point2f>> FeatureFindMatch::get_matched_coordinates() {
+MatchedKeyPoint FeatureFindMatch::get_matched_coordinates() {
 	return matched_keypoints;
 }
 
@@ -99,7 +98,6 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 
 	cout << "Images length: " << inc_images.size() << endl;
 	//cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
-	WINPAUSE;
 	
 	//displayPairWisematches(pairwise_matches);
 
@@ -128,15 +126,14 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 		CLOG(msg3, Verbosity::INFO);
 	}
 
-
-	//matched_keypoints.resize(good_matches.size(), vector<Point2f>(2));
-	matched_keypoints.resize(2, vector<Point2f>(good_matches.size()));
+	matched_keypoints.image_1.resize(good_matches.size());
+	matched_keypoints.image_2.resize(good_matches.size());
 	
-	for (size_t i = 0; i < matched_keypoints.size(); i++) {
-		matched_keypoints[i][0] = keypoints_1[good_matches[i].queryIdx].pt;
-		matched_keypoints[i][1] = keypoints_1[good_matches[i].trainIdx].pt;
-		cout << matched_keypoints[i][0] << endl;
-		cout << matched_keypoints[i][1] << endl;
+	for (size_t i = 0; i < good_matches.size(); i++) {
+		matched_keypoints.image_1[i] = (keypoints_1[good_matches[i].queryIdx].pt);
+		matched_keypoints.image_2[i] = (keypoints_2[good_matches[i].trainIdx].pt);
+		/*cout << matched_keypoints.image_1[i] << endl;
+		cout << matched_keypoints.image_2[i] << endl;*/
 	}
 
 	matchesDraw(img_1, keypoints_1, img_2, keypoints_2, good_matches);
@@ -210,17 +207,13 @@ int FeatureFindMatch::setThreshold(vector<DMatch> my_matches, float desired_perc
 	cout << "combined_values: " << combined_values << endl;
 	threshold = my_matches.size() * desired_percentage;
 	cout << "threshold: " << threshold << endl;
-	WINPAUSE;
 	
 	return static_cast<int>(threshold);	
 }
 
 void FeatureFindMatch::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, vector<KeyPoint> keypoints_2, vector<DMatch> good_matches) {
 
-	String output_location = "C:/photos/matching_output/test_";
-	output_location = "C:/photos/matching_output/test_";
-	output_location = output_location + ".jpg";
-
+	String output_location = "../opencv_image_stitching/Images/Results/test_1.jpg";
 	vector<char> mask(good_matches.size(), 1);
 	Mat output_img;
 
@@ -235,12 +228,10 @@ void FeatureFindMatch::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat 
 
 	Mat outImg;
 	resize(output_img, outImg, cv::Size(), 1, 1);
-	imshow("Matching", outImg);
+	//imshow("Matching", outImg);
 	waitKey(0);
 
 	imwrite(output_location, outImg);
-
-	WINPAUSE;
 }
 
 void FeatureFindMatch::displayPairWisematches(vector<MatchesInfo> pairwise_matches) {
@@ -259,7 +250,6 @@ void FeatureFindMatch::displayPairWisematches(vector<MatchesInfo> pairwise_match
 	}
 	cout << "}" << endl;
 	cout << "-----------------------------" << endl << endl;
-	WINPAUSE;
 }
 
 FeatureFindMatch::~FeatureFindMatch() {

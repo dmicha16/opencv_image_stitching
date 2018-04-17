@@ -1,11 +1,18 @@
 #pragma once
 #include "Wrapper.h"
+
+typedef struct MatchedKeyPoint {
+	vector<Point2f> image_1;
+	vector<Point2f> image_2;
+};
+
+
 class FeatureFindMatch :
 	public Wrapper {
 public:
 	FeatureFindMatch();
 	void find_features(vector<Mat> inc_images);
-	vector<vector<Point2f>> get_matched_coordinates();
+	MatchedKeyPoint get_matched_coordinates();
 	~FeatureFindMatch();
 
 protected:
@@ -14,7 +21,7 @@ protected:
 private:
 
 	int num_images;
-	vector<vector<Point2f>> matched_keypoints;
+	MatchedKeyPoint matched_keypoints;
 
 	void match_features_(vector<Mat> inc_images, vector<ImageFeatures> strict_features);
 	vector<Mat> createImageSubset(vector<ImageFeatures> &strict_features, vector<MatchesInfo> pairwise_matches, vector<Mat> images);

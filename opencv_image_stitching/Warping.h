@@ -1,18 +1,19 @@
 #pragma once
 #include "Wrapper.h"
+#include "FeatureFindMatch.h"
+
 class Warping :
 	public Wrapper {
 public:
 	Warping();
-	void warp(Mat &image, Point2f features[][2]);
+	void warp(Mat &image, MatchedKeyPoint features);
 	~Warping();
 
 private:
 	void perspective_warping_(Mat &img);
-	void vector_split_(Point2f features[][2]);
+	void vector_split_(MatchedKeyPoint features);
 	vector<Point2f> baseImagePts_;
 	vector<Point2f> dstPts_;
-
 protected:
 	Mat warpedImage;
 };
