@@ -1,5 +1,6 @@
 #include "Wrapper.h"
 #include "FeatureFindMatch.h"
+#include "ImageReader.h"
 #include "Undistorter.h"
 #include "Warping.h"
 
@@ -15,8 +16,8 @@ int main() {
 
 	/******************************************* WRAPPER *******************************************/
 	
-	Wrapper wrapper;
-	vector<Mat> raw_images = wrapper.get_images();
+	ImageReader image_reader;
+	vector<Mat> raw_images = image_reader.get_images();
 	
 
 

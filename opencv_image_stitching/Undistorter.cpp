@@ -5,7 +5,7 @@ Undistorter::Undistorter() {
 }
 
 vector<Mat> Undistorter::undistort_images(vector<Mat> images) {
-	num_images = static_cast <int> (images.size());
+	int num_images = static_cast <int> (images.size());
 
 
 	dist_coef_ = (Mat_<double>(5, 1) << -0.1231, 0.0660, -2.2759e-04, -0.0036, -0.0040);

@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ImageReader.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Stitcher.h" />
     <ClInclude Include="Timer.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="Warping.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ImageReader.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Stitcher.cpp" />
     <ClCompile Include="Timer.cpp" />

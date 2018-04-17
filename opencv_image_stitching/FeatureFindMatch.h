@@ -5,6 +5,7 @@ class FeatureFindMatch :
 public:
 	FeatureFindMatch();
 	void find_features(vector<Mat> inc_images);
+	vector<vector<Point2f>> get_matched_coordinates();
 	~FeatureFindMatch();
 
 protected:
@@ -13,6 +14,7 @@ protected:
 private:
 
 	int num_images;
+	vector<vector<Point2f>> matched_keypoints;
 
 	void match_features_(vector<Mat> inc_images, vector<ImageFeatures> strict_features);
 	vector<Mat> createImageSubset(vector<ImageFeatures> &strict_features, vector<MatchesInfo> pairwise_matches, vector<Mat> images);

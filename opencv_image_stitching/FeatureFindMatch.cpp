@@ -45,14 +45,19 @@ void FeatureFindMatch::find_features(vector<Mat> inc_images) {
 	match_features_(inc_images, image_features);
 }
 
+vector<vector<Point2f>> FeatureFindMatch::get_matched_coordinates() {
+	return matched_keypoints;
+}
+
 void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatures> image_features) {
 
 	float match_conf = 0.3f;
 	bool try_cuda = false;
 	int range_width = -1;
 
-	vector<MatchesInfo> pairwise_matches;
-	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
+	//vector<MatchesInfo> pairwise_matches;
+	MatchesInfo pairwise_matches;
+	//cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
 
 	Mat img_1 = inc_images[0];
 	Mat img_2 = inc_images[1];
@@ -75,7 +80,8 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	Ptr<FeaturesMatcher> current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
 
 	try {
-		(*current_matcher)(image_features, pairwise_matches);	
+		//(*current_matcher)(image_features, pairwise_matches);
+		(*current_matcher)(image_features[0], image_features[1], pairwise_matches);
 	}
 	catch (const std::exception& e) {
 		cout << e.what() << endl;
@@ -92,12 +98,13 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	CLOG(keypoints_length_2, Verbosity::INFO);
 
 	cout << "Images length: " << inc_images.size() << endl;
-	cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
+	//cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
 	WINPAUSE;
 	
-	displayPairWisematches(pairwise_matches);
+	//displayPairWisematches(pairwise_matches);
 
-	my_matches = pairwise_matches[1].matches;
+	//my_matches = pairwise_matches[1].matches;
+	my_matches = pairwise_matches.matches;
 
 	int threshold = setThreshold(my_matches, 0.25);
 	for (size_t i = 0; i < my_matches.size(); i++) {
@@ -111,19 +118,30 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	CLOG(good_matches_out, Verbosity::INFO);
 
 	for (size_t i = 0; i < good_matches.size(); i++) {
-		string msg = "Matches distance i: " + to_string(good_matches[i].distance);
-		string msg1 = "Matches imgIdx i: " + to_string(good_matches[i].imgIdx);
-		string msg2 = "Matches trainIdx i: " + to_string(good_matches[i].trainIdx);
-		string msg3 = "Matches queryIdx i: " + to_string(good_matches[i].queryIdx);
+		string msg = "Matches distance : " + to_string(i) + to_string(good_matches[i].distance);
+		string msg1 = "Matches imgIdx: " + to_string(i) + to_string(good_matches[i].imgIdx);
+		string msg2 = "Matches trainIdx: " + to_string(i) + to_string(good_matches[i].trainIdx);
+		string msg3 = "Matches queryIdx: " + to_string(i) + to_string(good_matches[i].queryIdx);
 		CLOG(msg, Verbosity::INFO);
 		CLOG(msg1, Verbosity::INFO);
 		CLOG(msg2, Verbosity::INFO);
 		CLOG(msg3, Verbosity::INFO);
 	}
 
+
+	//matched_keypoints.resize(good_matches.size(), vector<Point2f>(2));
+	matched_keypoints.resize(2, vector<Point2f>(good_matches.size()));
+	
+	for (size_t i = 0; i < matched_keypoints.size(); i++) {
+		matched_keypoints[i][0] = keypoints_1[good_matches[i].queryIdx].pt;
+		matched_keypoints[i][1] = keypoints_1[good_matches[i].trainIdx].pt;
+		cout << matched_keypoints[i][0] << endl;
+		cout << matched_keypoints[i][1] << endl;
+	}
+
 	matchesDraw(img_1, keypoints_1, img_2, keypoints_2, good_matches);
 	current_matcher->collectGarbage();
-	createImageSubset(image_features, pairwise_matches, inc_images);
+	//createImageSubset(image_features, pairwise_matches, inc_images);
 }
 
 vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &image_features, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
@@ -194,7 +212,7 @@ int FeatureFindMatch::setThreshold(vector<DMatch> my_matches, float desired_perc
 	cout << "threshold: " << threshold << endl;
 	WINPAUSE;
 	
-	return static_cast<int>(threshold);
+	return static_cast<int>(threshold);	
 }
 
 void FeatureFindMatch::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, vector<KeyPoint> keypoints_2, vector<DMatch> good_matches) {
@@ -227,14 +245,20 @@ void FeatureFindMatch::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat 
 
 void FeatureFindMatch::displayPairWisematches(vector<MatchesInfo> pairwise_matches) {
 
-	for (size_t i = 0; i < pairwise_matches.size(); i++) {
-		cout << "dst_img_indx: " << pairwise_matches[i].dst_img_idx << endl;
-		cout << "confidence: " << pairwise_matches[i].confidence << endl;
-		cout << "H: " << pairwise_matches[i].H << endl;
+	cout << "\n-----------------------------" << endl;
+	cout << "displayPairWisematches() {" << endl;
+	cout << "\t-------------------" << endl;
+
+	for (size_t i = 1; i < pairwise_matches.size() - 1; i++) {
+		cout << "\tdst_img_indx: " << pairwise_matches[i].dst_img_idx << endl;
+		cout << "\tconfidence: " << pairwise_matches[i].confidence << endl;
+		cout << "\tH: " << pairwise_matches[i].H << endl;
 		//cout << "inliers_mask[i]: " << pairwise_matches[i].inliers_mask[i] << endl;
-		cout << "num_inliers: " << pairwise_matches[i].num_inliers << endl;
-		cout << "-------------" << endl;
+		cout << "\tnum_inliers: " << pairwise_matches[i].num_inliers << endl;
+		cout << "\t-------------------" << endl;
 	}
+	cout << "}" << endl;
+	cout << "-----------------------------" << endl << endl;
 	WINPAUSE;
 }
 
