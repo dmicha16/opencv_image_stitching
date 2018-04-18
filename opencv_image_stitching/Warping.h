@@ -6,7 +6,7 @@ class Warping :
 	public Wrapper {
 public:
 	Warping();
-	void warp(Mat &image, MatchedKeyPoint features);
+	Mat warp(Mat &image, MatchedKeyPoint features);
 	~Warping();
 
 private:

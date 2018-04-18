@@ -5,8 +5,8 @@
 class Stitcher :
 	public Wrapper {
 public:
-	Stitcher(Undistorter undistorter);
-	void merging(Mat &img1, Mat &img2);
+	Stitcher();
+	Mat merging(Mat &img1, Mat &img2);
 	~Stitcher();
 protected:
 	Mat3b stitchedImage;

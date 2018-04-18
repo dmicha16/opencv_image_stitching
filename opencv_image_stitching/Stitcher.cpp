@@ -1,9 +1,9 @@
 #include "Stitcher.h"
 
 
-Stitcher::Stitcher(Undistorter undistorter) {
+Stitcher::Stitcher() {
 }
-void Stitcher::merging(Mat &img1, Mat &img2) {
+Mat Stitcher::merging(Mat &img1, Mat &img2) {
 	cout << endl << "Merging() {" << endl << endl;
 
 	cout << "img1.cols = " << img1.cols << endl;
@@ -26,6 +26,7 @@ void Stitcher::merging(Mat &img1, Mat &img2) {
 	img1.copyTo(res(Rect(0, 0, img1.cols, img1.rows)));
 
 	stitchedImage = res;
+	return stitchedImage;
 }
 
 Stitcher::~Stitcher() {
