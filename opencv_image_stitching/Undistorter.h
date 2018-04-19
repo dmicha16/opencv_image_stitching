@@ -5,6 +5,7 @@ class Undistorter :
 public:
 	Undistorter();	
 	~Undistorter();
+	vector<Mat> undistort_images(vector<Mat> images);
 
 private:
 	Mat dist_coef_;
