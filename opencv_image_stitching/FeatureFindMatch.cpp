@@ -104,8 +104,7 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	//my_matches = pairwise_matches[1].matches;
 	my_matches = pairwise_matches.matches;
 
-	//int threshold = setThreshold(my_matches, 0.25);
-	int threshold = setThreshold(my_matches, 1);
+	int threshold = setThreshold(my_matches, 0.1);
 	for (size_t i = 0; i < my_matches.size(); i++) {
 
 		if (my_matches[i].distance < threshold)
@@ -115,7 +114,7 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	cout << "Good matches #:" << good_matches.size() << endl;
 	string good_matches_out = "Good Matches #: " + to_string(good_matches.size());
 	CLOG(good_matches_out, Verbosity::INFO);
-	
+
 	for (size_t i = 0; i < good_matches.size(); i++) {
 		string msg = "Matches distance : " + to_string(i) + to_string(good_matches[i].distance);
 		string msg1 = "Matches imgIdx: " + to_string(i) + to_string(good_matches[i].imgIdx);
@@ -217,7 +216,7 @@ void FeatureFindMatch::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat 
 	String output_location = "../opencv_image_stitching/Images/Results/test_1.jpg";
 	vector<char> mask(good_matches.size(), 1);
 	Mat output_img;
-	
+
 	try {
 		drawMatches(img_1, keypoints_1, img_2, keypoints_2, good_matches, output_img, Scalar::all(-1),
 			Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);

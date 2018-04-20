@@ -15,9 +15,9 @@ void Warping::perspective_warping_(Mat &img) {
 	cout << "Perspective() {" << endl << endl;
 
 	// Find homography
-	//Mat h = findHomography(baseImagePts_, dstPts_, RANSAC, 16);
-	//Mat h = findHomography(baseImagePts_, dstPts_, LMEDS, 3); // This one is pretty good
-	Mat h = findHomography(baseImagePts_, dstPts_, RHO, 1); // This one is pretty very good
+	Mat h = findHomography(baseImagePts_, dstPts_, RANSAC, 3);
+	//Mat h = findHomography(baseImagePts_, dstPts_, LMEDS, 10); // This one is pretty good
+	//Mat h = findHomography(baseImagePts_, dstPts_, RHO, 0); // This one is pretty very good
 	//Mat h = findHomography(baseImagePts_, dstPts_, 0, 3);
 	//cout << endl << "homography = " << endl << h << endl << endl;
 	
