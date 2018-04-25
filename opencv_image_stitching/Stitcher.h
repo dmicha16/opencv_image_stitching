@@ -7,9 +7,11 @@ class Stitcher :
 public:
 	Stitcher();
 	Mat merging(Mat &img1, Mat &img2);
+	Mat customMerger(Mat &img1, Mat &img2);
 	~Stitcher();
-protected:
+private:
+	Vec3b blackPixels1 = {3, 3, 3};
+	Vec3b blackPixels2 = { 0, 0, 0 };
 	Mat3b stitchedImage;
-
 };
 

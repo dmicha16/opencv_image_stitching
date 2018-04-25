@@ -11,7 +11,7 @@ Mat Stitcher::merging(Mat &img1, Mat &img2) {
 
 	// Get dimension of final image
 	int rows = max(img1.rows, img2.rows);
-	int cols = img2.cols;
+	int cols = max(img1.cols, img2.cols);
 
 	cout << "rows = " << rows << endl;
 	cout << "cols = " << cols << endl << endl;
@@ -27,6 +27,41 @@ Mat Stitcher::merging(Mat &img1, Mat &img2) {
 
 	stitchedImage = res;
 	return stitchedImage;
+}
+
+
+Mat Stitcher::customMerger(Mat &img1, Mat &img2) {
+	cout << endl << "customMerging() {" << endl << endl;
+
+	cout << "img1.cols = " << img1.cols << endl;
+	cout << "img2.cols = " << img2.cols << endl << endl;
+
+	// Get dimension of final image
+	int rows = max(img1.rows, img2.rows);
+	int cols = max(img1.cols, img2.cols);
+
+	cout << "rows = " << rows << endl;
+	cout << "cols = " << cols << endl << endl;
+
+	// Create a black image
+	Mat3b res(rows, cols, Vec3b(0, 0, 0));
+	cout << "res.size() = " << res.size() << endl;
+	cout << "}" << endl << endl;
+
+
+	// Copy images in correct position
+	for (int y = 0; y < img1.rows; y++) // loop through the image
+	{
+		for (int x = 0; x < img1.cols; x++)
+		{
+			//if (img1.at<Vec3b>(y, x)[0] > blackPixels1[0] && img1.at<Vec3b>(y, x)[1] > blackPixels1[1] && img1.at<Vec3b>(y, x)[2] > blackPixels1[2]) {
+			if (img1.at<Vec3b>(y, x) != blackPixels2) {
+				img2.at<Vec3b>(y, x) = img1.at<Vec3b>(y, x); // set value
+			}
+		}
+	}
+
+	return img2;
 }
 
 Stitcher::~Stitcher() {
