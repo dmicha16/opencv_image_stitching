@@ -44,7 +44,9 @@ int main() {
 	for (size_t i = 0; i < raw_images.size() - 1; i++) {
 		/****************************************** FEATURES *******************************************/
 
-		finder.find_features(raw_images);
+
+		//finder.find_features(raw_images);
+		finder.find_features(images_to_stitch);
 		MatchedKeyPoint matched_key_points = finder.get_matched_coordinates();
 
 		Mat raw;
@@ -66,9 +68,11 @@ int main() {
 		cout << endl << "Number of Iteration: " << i + 1 << endl;
 
 		if (i < (raw_images.size() - 2)) {
+			images_to_stitch.empty(); ///////////////
 			images_to_stitch[0] = stitchedImg;
 			images_to_stitch[1] = raw_images[i + 2];
 
+			stitchedImg.empty();
 			Mat inter;
 			resize(images_to_stitch[0], inter, cvSize(0, 0), 0.4, 0.4);
 			string int_name = "inter image" + to_string(i);
