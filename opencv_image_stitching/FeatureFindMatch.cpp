@@ -104,7 +104,7 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	//my_matches = pairwise_matches[1].matches;
 	my_matches = pairwise_matches.matches;
 
-	int threshold = setThreshold(my_matches, 0.1);
+	int threshold = setThreshold(my_matches, 0.25);
 	for (size_t i = 0; i < my_matches.size(); i++) {
 
 		if (my_matches[i].distance < threshold)
@@ -126,6 +126,20 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 		CLOG(msg3, Verbosity::INFO);
 	}
 
+////////////////////////////////////////////////////////////////////////////////////////// sorting the matches
+	
+	// This sorts the macthes, so that the macthes with the smallest "distance" are put first in the vector  
+	for (size_t i = 0; i < good_matches.size() + 1; i++) {
+		sort(good_matches.begin(), good_matches.begin()+i);
+	}
+	
+	/*
+	for (size_t j = 0; j < good_matches.size(); j++) {
+		cout << "good_matches[i].distance = " << good_matches[j].distance << endl;
+	}*/
+
+////////////////////////////////////////////////////////////////////////////////////////// sorting the matches
+
 	matched_keypoints.image_1.resize(good_matches.size());
 	matched_keypoints.image_2.resize(good_matches.size());
 	
@@ -143,7 +157,7 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 
 vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &image_features, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
 
-	float conf_thresh = 1.f;
+	float conf_thresh = 3.f;
 	int num_images = static_cast <int>(inc_images.size());
 
 	vector<int> indices = leaveBiggestComponent(image_features, pairwise_matches, conf_thresh);
