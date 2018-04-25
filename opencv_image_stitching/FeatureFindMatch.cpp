@@ -104,7 +104,7 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 	//my_matches = pairwise_matches[1].matches;
 	my_matches = pairwise_matches.matches;
 
-	int threshold = setThreshold(my_matches, 0.25);
+	int threshold = setThreshold(my_matches, 1);
 	for (size_t i = 0; i < my_matches.size(); i++) {
 
 		if (my_matches[i].distance < threshold)
