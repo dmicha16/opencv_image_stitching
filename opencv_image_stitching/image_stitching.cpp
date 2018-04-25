@@ -47,42 +47,40 @@ int main() {
 		finder.find_features(raw_images);
 		MatchedKeyPoint matched_key_points = finder.get_matched_coordinates();
 
-		WINPAUSE;
-
 		Mat raw;
-		resize(images_to_stitch[1], raw, cvSize(0, 0), 0.5, 0.5);
+		resize(images_to_stitch[1], raw, cvSize(0, 0), 0.4, 0.4);
 		string base_name = "Base image" + to_string(i);
-		imshow(base_name, raw);
+		//imshow(base_name, raw);
 		/******************************************* WARPING *******************************************/
 
 		Mat warpedImg = warper.warp(images_to_stitch[0], matched_key_points);
 
 		Mat warp;
-		resize(warpedImg, warp, cvSize(0, 0), 0.5, 0.5);
+		resize(warpedImg, warp, cvSize(0, 0), 0.4, 0.4);
 		string warp_name = "warped image" + to_string(i);
-		imshow(warp_name, warp);
+		//imshow(warp_name, warp);
 		/****************************************** STITCHING *******************************************/
 			
 		stitchedImg = stitcher.merging(images_to_stitch[1], warpedImg);
 
-		cout << endl << "Iteration number: " << i << endl;
+		cout << endl << "Number of Iteration: " << i + 1 << endl;
 
 		if (i < (raw_images.size() - 2)) {
-			cout << "I AM THE IF MOTHERFUCKER" << endl;
 			images_to_stitch[0] = stitchedImg;
 			images_to_stitch[1] = raw_images[i + 2];
 
 			Mat inter;
-			resize(images_to_stitch[0], inter, cvSize(0, 0), 0.5, 0.5);
+			resize(images_to_stitch[0], inter, cvSize(0, 0), 0.4, 0.4);
 			string int_name = "inter image" + to_string(i);
-			imshow(int_name, inter);
+			//imshow(int_name, inter);
 			//break;
 		}
 
 	}
 	Mat stitched;
-	resize(stitchedImg, stitched, cvSize(0, 0), 0.5, 0.5);
+	resize(stitchedImg, stitched, cvSize(0, 0), 0.3, 0.3);
 	imshow("Stitched image", stitched);
+
 	
 	cout << endl << "------------ MISSION COMPLETE ------------" << endl;
 	waitKey(0);
