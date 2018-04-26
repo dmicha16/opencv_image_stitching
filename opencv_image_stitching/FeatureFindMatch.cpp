@@ -98,7 +98,7 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 
 	cout << "Images length: " << inc_images.size() << endl;
 	//cout << "pairwise_matches #i: " << pairwise_matches.size() << endl;
-	
+
 	//displayPairWisematches(pairwise_matches);
 
 	//my_matches = pairwise_matches[1].matches;
@@ -126,23 +126,19 @@ void FeatureFindMatch::match_features_(vector<Mat> inc_images, vector<ImageFeatu
 		CLOG(msg3, Verbosity::INFO);
 	}
 
-////////////////////////////////////////////////////////////////////////////////////////// sorting the matches
-	
 	// This sorts the macthes, so that the macthes with the smallest "distance" are put first in the vector  
 	for (size_t i = 0; i < good_matches.size() + 1; i++) {
-		sort(good_matches.begin(), good_matches.begin()+i);
+		sort(good_matches.begin(), good_matches.begin() + i);
 	}
-	
 	/*
 	for (size_t j = 0; j < good_matches.size(); j++) {
-		cout << "good_matches[i].distance = " << good_matches[j].distance << endl;
+	cout << "good_matches[i].distance = " << good_matches[j].distance << endl;
 	}*/
 
-////////////////////////////////////////////////////////////////////////////////////////// sorting the matches
 
 	matched_keypoints.image_1.resize(good_matches.size());
 	matched_keypoints.image_2.resize(good_matches.size());
-	
+
 	for (size_t i = 0; i < good_matches.size(); i++) {
 		matched_keypoints.image_1[i] = (keypoints_1[good_matches[i].queryIdx].pt);
 		matched_keypoints.image_2[i] = (keypoints_2[good_matches[i].trainIdx].pt);
@@ -221,8 +217,8 @@ int FeatureFindMatch::setThreshold(vector<DMatch> my_matches, float desired_perc
 	cout << "combined_values: " << combined_values << endl;
 	threshold = my_matches.size() * desired_percentage;
 	cout << "threshold: " << threshold << endl;
-	
-	return static_cast<int>(threshold);	
+
+	return static_cast<int>(threshold);
 }
 
 void FeatureFindMatch::matchesDraw(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, vector<KeyPoint> keypoints_2, vector<DMatch> good_matches) {
