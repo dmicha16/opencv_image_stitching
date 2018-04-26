@@ -54,8 +54,7 @@ Mat Stitcher::customMerger(Mat &img1, Mat &img2) {
 	{
 		for (int x = 0; x < img1.cols; x++)
 		{
-			//if (img1.at<Vec3b>(y, x)[0] > blackPixels1[0] && img1.at<Vec3b>(y, x)[1] > blackPixels1[1] && img1.at<Vec3b>(y, x)[2] > blackPixels1[2]) {
-			if (img1.at<Vec3b>(y, x) != blackPixels2) {
+			if (img1.at<Vec3b>(y, x) != BLACKPIXEL) {
 				img2.at<Vec3b>(y, x) = img1.at<Vec3b>(y, x); // set value
 			}
 		}

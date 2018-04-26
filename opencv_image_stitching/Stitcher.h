@@ -10,8 +10,7 @@ public:
 	Mat customMerger(Mat &img1, Mat &img2);
 	~Stitcher();
 private:
-	Vec3b blackPixels1 = {3, 3, 3};
-	Vec3b blackPixels2 = { 0, 0, 0 };
+	Vec3b BLACKPIXEL = { 0, 0, 0 };
 	Mat3b stitchedImage;
 };
 
