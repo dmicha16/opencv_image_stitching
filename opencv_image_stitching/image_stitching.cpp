@@ -21,29 +21,41 @@ int main() {
 	ImageReader image_reader;
 
 	/******************************************* Reader *******************************************/
-	
+
 	vector<Mat> raw_images = image_reader.get_images();
-	
+
 
 
 	/**************************************** UNDISTORTION *****************************************/
-	
+
 	//Undistorter undistorter;
 	//vector<Mat> undist_images = undistorter.undistort_images(raw_images);
-	
+
 	vector<Mat> images_to_stitch;
 	images_to_stitch.resize(2);
 
 	Mat stitchedImg;
-	
+
 	for (size_t i = 0; i < 2; i++) {
 		images_to_stitch[i] = raw_images[i];
 	}
 
 
+
 	for (size_t i = 0; i < raw_images.size() - 1; i++) {
 		/****************************************** FEATURES *******************************************/
 
+		images_to_stitch[0] = warper.translate(images_to_stitch[0], 350, 0);
+		Mat img1;
+		resize(images_to_stitch[0], img1, cvSize(0, 0), 0.3, 0.3);
+		string name1 = "images_to_stitch[0]" + to_string(i);
+		//imshow(name1, img1);
+
+		images_to_stitch[1] = warper.translate(images_to_stitch[1], 350, 0);
+		Mat img2;
+		resize(images_to_stitch[1], img2, cvSize(0, 0), 0.3, 0.3);
+		string name2 = "images_to_stitch[1]" + to_string(i);
+		//imshow(name2, img2);
 
 		//finder.find_features(raw_images);
 		finder.find_features(images_to_stitch);
@@ -54,6 +66,8 @@ int main() {
 		string base_name = "Base image" + to_string(i);
 		//imshow(base_name, raw);
 		/******************************************* WARPING *******************************************/
+		
+		WINPAUSE;
 
 		Mat warpedImg = warper.warp(images_to_stitch[0], matched_key_points);
 
@@ -62,8 +76,9 @@ int main() {
 		string warp_name = "warped image" + to_string(i);
 		//imshow(warp_name, warp);
 		/****************************************** STITCHING *******************************************/
-			
-		stitchedImg = stitcher.merging(images_to_stitch[1], warpedImg);
+
+		stitchedImg = stitcher.customMerger(images_to_stitch[1], warpedImg);
+		//stitchedImg = stitcher.merging(images_to_stitch[1], warpedImg);
 
 		cout << endl << "Number of Iteration: " << i + 1 << endl;
 
@@ -85,7 +100,7 @@ int main() {
 	resize(stitchedImg, stitched, cvSize(0, 0), 0.3, 0.3);
 	imshow("Stitched image", stitched);
 
-	
+
 	cout << endl << "------------ MISSION COMPLETE ------------" << endl;
 	waitKey(0);
 }
