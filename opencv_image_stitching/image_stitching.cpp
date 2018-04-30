@@ -13,8 +13,6 @@ int main() {
 	ADD_FILE("clogging.log");
 	cv::ocl::setUseOpenCL(false);
 
-	CLOG("test");
-
 	Stitcher stitcher;
 	Warping warper;
 	FeatureFindMatch finder;
@@ -25,7 +23,6 @@ int main() {
 	vector<Mat> raw_images = image_reader.get_images();
 
 
-
 	/**************************************** UNDISTORTION *****************************************/
 
 	//Undistorter undistorter;
@@ -34,17 +31,17 @@ int main() {
 	vector<Mat> images_to_stitch;
 	images_to_stitch.resize(2);
 
-	Mat stitchedImg;
+	Mat stitched_img;
 
 	for (size_t i = 0; i < 2; i++) {
 		images_to_stitch[i] = raw_images[i];
 	}
 
-
-
 	for (size_t i = 0; i < raw_images.size() - 1; i++) {
-		/****************************************** FEATURES *******************************************/
 
+		/****************************************** FEATURES *******************************************/
+		cout << "first image size - " << images_to_stitch[0].size << endl;
+		cout << "second image size - " << images_to_stitch[1].size << endl;
 		images_to_stitch[0] = warper.translate(images_to_stitch[0], 350, 0);
 		Mat img1;
 		resize(images_to_stitch[0], img1, cvSize(0, 0), 0.3, 0.3);
@@ -57,8 +54,8 @@ int main() {
 		string name2 = "images_to_stitch[1]" + to_string(i);
 		//imshow(name2, img2);
 
-		//finder.find_features(raw_images);
-		finder.find_features(images_to_stitch);
+		int threshold = 0.2;
+		finder.find_features(images_to_stitch, threshold);
 		MatchedKeyPoint matched_key_points = finder.get_matched_coordinates();
 
 		Mat raw;
@@ -69,25 +66,25 @@ int main() {
 		
 		WINPAUSE;
 
-		Mat warpedImg = warper.warp(images_to_stitch[0], matched_key_points);
+		Mat warped_img = warper.warp(images_to_stitch[0], matched_key_points);
 
 		Mat warp;
-		resize(warpedImg, warp, cvSize(0, 0), 0.4, 0.4);
+		resize(warped_img, warp, cvSize(0, 0), 0.4, 0.4);
 		string warp_name = "warped image" + to_string(i);
 		//imshow(warp_name, warp);
 		/****************************************** STITCHING *******************************************/
 
-		stitchedImg = stitcher.customMerger(images_to_stitch[1], warpedImg);
-		//stitchedImg = stitcher.merging(images_to_stitch[1], warpedImg);
+		stitched_img = stitcher.customMerger(images_to_stitch[1], warped_img);
+		//stitched_img = stitcher.merging(images_to_stitch[1], warped_img);
 
 		cout << endl << "Number of Iteration: " << i + 1 << endl;
 
 		if (i < (raw_images.size() - 2)) {
-			images_to_stitch.empty(); ///////////////
-			images_to_stitch[0] = stitchedImg;
+			images_to_stitch.empty();
+			images_to_stitch[0] = stitched_img;
 			images_to_stitch[1] = raw_images[i + 2];
 
-			stitchedImg.empty();
+			stitched_img.empty();
 			Mat inter;
 			resize(images_to_stitch[0], inter, cvSize(0, 0), 0.4, 0.4);
 			string int_name = "inter image" + to_string(i);
@@ -97,8 +94,10 @@ int main() {
 
 	}
 	Mat stitched;
-	resize(stitchedImg, stitched, cvSize(0, 0), 0.3, 0.3);
-	imshow("Stitched image", stitched);
+	//resize(stitched_img, stitched, cvSize(0, 0), 0.3, 0.3);
+	//imshow("Stitched image", stitched);
+	String output_location = "../opencv_image_stitching/Images/Results/result2.jpg";
+	imwrite(output_location, stitched_img);
 
 
 	cout << endl << "------------ MISSION COMPLETE ------------" << endl;

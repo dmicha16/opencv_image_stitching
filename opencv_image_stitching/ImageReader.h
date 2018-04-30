@@ -6,14 +6,14 @@ public:
 	ImageReader();
 	~ImageReader();
 	vector<Mat> get_images();
-	int get_number_images();
+	int get_num_images();
 
 private:
-	int num_images;
-	vector<String> img_names;
-	Mat full_img, img;
-	vector<Mat> images;
-	void read_images_(string path);
-	vector<Mat> upload_images_(vector<Mat> images, vector<Size> full_img_sizes);
+	int num_images_;
+	vector<String> img_names_;
+	Mat img_;
+	vector<Mat> images_;
+	void read_images_(const string path);
+	vector<Mat> upload_images_(vector<Mat> images_);
 };
 
