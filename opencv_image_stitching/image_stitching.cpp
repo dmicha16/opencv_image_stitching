@@ -54,7 +54,7 @@ int main() {
 		string name2 = "images_to_stitch[1]" + to_string(i);
 		//imshow(name2, img2);
 
-		int threshold = 0.2;
+		float threshold = 0.5;
 		finder.find_features(images_to_stitch, threshold);
 		MatchedKeyPoint matched_key_points = finder.get_matched_coordinates();
 
