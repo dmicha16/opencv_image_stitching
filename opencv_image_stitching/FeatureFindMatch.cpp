@@ -55,6 +55,16 @@ MatchedKeyPoint FeatureFindMatch::get_matched_coordinates() {
 	return matched_keypoints_;
 }
 
+void FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images) {
+	RoiCalculator roi_calculator;
+	roi_calculator.set_images(inc_images);
+	roi_calculator.calculate_roi(6);
+	MatchedKeyPointCopy matched_copy;
+	matched_copy.image_1 = matched_keypoints_.image_1;
+	matched_copy.image_2 = matched_keypoints_.image_2;
+	roi_calculator.set_matched_keypoints(matched_copy);
+}
+
 void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vector<ImageFeatures> image_features_) {
 
 	float match_conf = 0.3f;
@@ -145,6 +155,7 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 		cout << matched_keypoints_.image_2[i] << endl;*/
 	}
 
+	//keypoint_area_check_(inc_images);
 	matches_drawer_(img_1, keypoints_1, img_2, keypoints_2, filtered_matches);
 	current_matcher->collectGarbage();
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "Wrapper.h"
+#include "RoiCalculator.h"
 
 typedef struct MatchedKeyPoint {
 	vector<Point2f> image_1;
@@ -20,7 +21,7 @@ public:
 	FeatureFindMatch();
 	void find_features(const vector<Mat> inc_images, const float inc_threshold);
 	MatchedKeyPoint get_matched_coordinates();
-	~FeatureFindMatch();	
+	~FeatureFindMatch();
 
 private:
 
@@ -28,6 +29,8 @@ private:
 	int num_images_;
 	MatchedKeyPoint matched_keypoints_;
 	float threshold_;
+
+	void keypoint_area_check_(vector<Mat> inc_images);
 
 	void match_features_(const vector<Mat> inc_images, const vector<ImageFeatures> strict_features);
 	int calculate_treshold_(vector<DMatch> matches, float desired_percentage);

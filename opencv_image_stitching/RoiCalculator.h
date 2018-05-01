@@ -37,7 +37,18 @@ using namespace cv::detail;
 typedef struct Rectengales {
 	vector<Rect> rectengales;
 	void desginate_rectengales(int desired_rect);
+	//void reset_rect();
 };
+
+typedef struct MatchedKeyPointCopy {
+	vector<Point2f> image_1;
+	vector<Point2f> image_2;
+};
+
+typedef struct FilteredKeyPoints {
+	vector<Point2f> image_1;
+	vector<Point2f> image_2;
+}; 
 
 class RoiCalculator {
 
@@ -47,12 +58,16 @@ public:
 
 	void set_images(vector<Mat> inc_images);
 	void calculate_roi(int desired_rect);
-	bool check_keypoint();	
+	bool check_keypoint();
+	void set_matched_keypoints(MatchedKeyPointCopy inc_matched_keypoints);
 
 private:
+	int num_rect_;
 	Rectengales rect_s_;
 	vector<Mat> images_;
 	int num_images_;
+	MatchedKeyPointCopy matched_keypoints_;
+	FilteredKeyPoints filtered_keypoints_;
 	void write_roi(Mat curr_img);
 };
 
