@@ -262,3 +262,6 @@ __pycache__/
 /opencv_image_stitching/json.hpp
 /opencv_image_stitching/edu_properties.props
 /opencv_image_stitching/openCV_edu.props
+opencv_image_stitching/Composition.cpp
+opencv_image_stitching/Composition.h
+opencv_image_stitching/Composition.h
