@@ -7,47 +7,55 @@ RoiCalculator::RoiCalculator() {
 RoiCalculator::~RoiCalculator() {
 }
 
-void RoiCalculator::calculate_roi(int desired_rect) {
+void RoiCalculator::calculate_roi(int desired_cols, int desired_rows, float overlap) {
 
-	rect_s_.desginate_rectengales(desired_rect);
+	rect_s_.desginate_rectengales(desired_cols * desired_rows);
 	num_rect_ = rect_s_.rectengales.size();
-	Mat current_img;
-	int img_width;
-	int img_height;	
-	Point2f img_coords;
+
+	//number of pixels
+	const unsigned int img_width = image_.cols;
+	const unsigned int img_height = image_.rows;
+	vector<RowDefiner> row_definitions_(desired_rows);
+	vector<int> starting_row_heights(desired_rows);
+
+	int height_offset = img_height * overlap / desired_rows;
+
+	for (size_t i = 0; i < starting_row_heights.size(); i++) {
+		starting_row_heights[i] = img_height - height_offset * i;
+	}
+
+	for (size_t i = 0; i < row_definitions_.size(); i++) {
+		row_definitions_[i] = populate_row_definer_(img_width, starting_row_heights[i], (height_offset * i));
+	}
+
+	//take image and display all points
+
+
+	/*for (size_t i = 0; i < (num_rect_ / 2); i++) {
+		rect_s_.rectengales[i].x = 0;
+		rect_s_.rectengales[i].y = img_coords.y;
+
+		rect_s_.rectengales[i].width = img_width / 2;
+		rect_s_.rectengales[i].height = img_height / num_rect_;
+
+		img_coords.y += img_height / num_rect_;
+	}
+
 	img_coords.y = 0;
 
-	for (size_t i = 0; i < images_.size(); i++) {
-		current_img = images_[i];
+	for (size_t i = (num_rect_ / 2); i < num_rect_; i++) {
+		rect_s_.rectengales[i].x = img_width / 2;
+		rect_s_.rectengales[i].y = img_coords.y;
 
-		img_width = current_img.cols;
-		img_height = current_img.rows;		
+		rect_s_.rectengales[i].width = img_width / 2;
+		rect_s_.rectengales[i].height = img_height / num_rect_;
 
-		for (size_t i = 0; i < (num_rect_ / 2); i++) {
-			rect_s_.rectengales[i].x = 0;
-			rect_s_.rectengales[i].y = img_coords.y;
+		img_coords.y += img_height / num_rect_;
+	}*/
+	//check_keypoint();
 
-			rect_s_.rectengales[i].width = img_width / 2;
-			rect_s_.rectengales[i].height = img_height / num_rect_;
-
-			img_coords.y += img_height / num_rect_;
-		}
-
-		img_coords.y = 0;
-
-		for (size_t i = (num_rect_ / 2); i < num_rect_; i++) {
-			rect_s_.rectengales[i].x = img_width / 2;
-			rect_s_.rectengales[i].y = img_coords.y;
-
-			rect_s_.rectengales[i].width = img_width / 2;
-			rect_s_.rectengales[i].height = img_height / num_rect_;
-
-			img_coords.y += img_height / num_rect_;
-		}
-		//check_keypoint();
-	}
 	
-	//write_roi(current_img);
+	//write_roi(image_);
 	
 }
 
@@ -55,11 +63,10 @@ bool RoiCalculator::check_keypoint() {
 
 	for (size_t i = 0; i < num_images_; i++) {
 		for (size_t j = 0; j < num_rect_; j++) {
-
 			if (i == 1) {
 				for (size_t k = 0; k < matched_keypoints_.image_1.size(); k++) {
 					if (rect_s_.rectengales[j].contains(matched_keypoints_.image_1[k])) {
-						filtered_keypoints_.image_1.push_back(matched_keypoints_.image_1[k]);
+						
 					}
 				}
 			}
@@ -94,15 +101,60 @@ void RoiCalculator::write_roi(Mat curr_img) {
 	}
 }
 
-void RoiCalculator::set_images(vector<Mat> inc_images) {
-	images_.resize(inc_images.size());
-	num_images_ = inc_images.size();
-	for (size_t i = 0; i < inc_images.size(); i++) {
-		images_[i] = inc_images[i];
+RowDefiner RoiCalculator::populate_row_definer_(int img_width, int start_height, int offset) {
+
+	RowDefiner row_defition;
+	
+	const Vec3b kBLACKPIXEL = {0, 0, 0};
+	bool noise = true;
+
+	for (int pixel_idx = 0; pixel_idx < img_width; pixel_idx++) {
+		if (image_.at<Vec3b>(start_height, pixel_idx) != kBLACKPIXEL) {
+			for (size_t j = 1; j <= 5; j++) {
+				if (image_.at<Vec3b>(start_height, (pixel_idx + j)) != kBLACKPIXEL)
+					noise = false;
+				else {
+					noise = true;
+					break;
+				}
+			}
+			if (!noise) {
+				row_defition.left.x = pixel_idx;
+				row_defition.left.y = start_height;
+				row_defition.top_left.y = start_height - offset;
+				row_defition.top_left.x = pixel_idx;
+				break;
+			}
+		}
 	}
+
+	for (int pixel_idx = img_width - 1; pixel_idx >= 0; pixel_idx--) {
+		if (image_.at<Vec3b>(start_height, pixel_idx) != kBLACKPIXEL) {
+			for (size_t j = 1; j <= 5; j++) {
+				if (image_.at<Vec3b>(start_height, (pixel_idx + j)) == kBLACKPIXEL)
+					noise = false;
+				else {
+					noise = true;
+					break;
+				}
+			}
+			if (!noise) {
+				row_defition.right.x = pixel_idx;
+				row_defition.right.y = start_height;				
+				break;
+			}
+		}
+	}
+
+	
+	return row_defition;
 }
 
-void RoiCalculator::set_matched_keypoints(MatchedKeyPointCopy inc_matched_keypoints) {
+void RoiCalculator::set_image(Mat inc_image) {
+	image_ = inc_image;
+}
+
+void RoiCalculator::set_matched_keypoints(MatchedKeyPoint inc_matched_keypoints) {
 	matched_keypoints_ = inc_matched_keypoints;
 }
 

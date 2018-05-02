@@ -1,18 +1,18 @@
 #pragma once
 #include "Wrapper.h"
 #include "RoiCalculator.h"
+//
+//typedef struct MatchedKeyPoint {
+//	vector<Point2f> image_1;
+//	vector<Point2f> image_2;
+//};
 
-typedef struct MatchedKeyPoint {
-	vector<Point2f> image_1;
-	vector<Point2f> image_2;
-};
-
-typedef struct MatchedImageData {
-	Mat img_1, img_2;
-	vector<KeyPoint> keypoints_1;
-	vector<KeyPoint> keypoints_2;
-	vector<DMatch> good_matches;
-};
+//typedef struct MatchedImageData {
+//	Mat img_1, img_2;
+//	vector<KeyPoint> keypoints_1;
+//	vector<KeyPoint> keypoints_2;
+//	vector<DMatch> good_matches;
+//};
 
 
 class FeatureFindMatch :

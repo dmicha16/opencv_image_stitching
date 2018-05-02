@@ -40,15 +40,17 @@ typedef struct Rectengales {
 	//void reset_rect();
 };
 
-typedef struct MatchedKeyPointCopy {
+typedef struct MatchedKeyPoint {
 	vector<Point2f> image_1;
 	vector<Point2f> image_2;
 };
 
-typedef struct FilteredKeyPoints {
-	vector<Point2f> image_1;
-	vector<Point2f> image_2;
-}; 
+typedef struct RowDefiner {
+	Point2f left;
+	Point2f right;
+	Point2f top_left;
+};
+
 
 class RoiCalculator {
 
@@ -56,18 +58,18 @@ public:
 	RoiCalculator();
 	~RoiCalculator();
 
-	void set_images(vector<Mat> inc_images);
-	void calculate_roi(int desired_rect);
+	void set_image(Mat inc_image);
+	void calculate_roi(int desired_cols, int desired_rows, float overlap);
 	bool check_keypoint();
-	void set_matched_keypoints(MatchedKeyPointCopy inc_matched_keypoints);
+	void set_matched_keypoints(MatchedKeyPoint inc_matched_keypoints);
 
 private:
 	int num_rect_;
 	Rectengales rect_s_;
-	vector<Mat> images_;
+	Mat image_;
 	int num_images_;
-	MatchedKeyPointCopy matched_keypoints_;
-	FilteredKeyPoints filtered_keypoints_;
+	MatchedKeyPoint matched_keypoints_;	
 	void write_roi(Mat curr_img);
+	RowDefiner populate_row_definer_(int img_width, int start_height, int offset);
 };
 
