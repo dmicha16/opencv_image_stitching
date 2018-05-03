@@ -42,15 +42,15 @@ int main() {
 		/****************************************** FEATURES *******************************************/
 		cout << "first image size - " << images_to_stitch[0].size << endl;
 		cout << "second image size - " << images_to_stitch[1].size << endl;
-		images_to_stitch[0] = warper.translate(images_to_stitch[0], 350, 0);
+		//images_to_stitch[0] = warper.translate(images_to_stitch[0], 350, 0);
 		Mat img1;
-		resize(images_to_stitch[0], img1, cvSize(0, 0), 0.3, 0.3);
+		//resize(images_to_stitch[0], img1, cvSize(0, 0), 0.3, 0.3);
 		string name1 = "images_to_stitch[0]" + to_string(i);
 		//imshow(name1, img1);
 
-		images_to_stitch[1] = warper.translate(images_to_stitch[1], 350, 0);
+		//images_to_stitch[1] = warper.translate(images_to_stitch[1], 350, 0);
 		Mat img2;
-		resize(images_to_stitch[1], img2, cvSize(0, 0), 0.3, 0.3);
+		//resize(images_to_stitch[1], img2, cvSize(0, 0), 0.3, 0.3);
 		string name2 = "images_to_stitch[1]" + to_string(i);
 		//imshow(name2, img2);
 

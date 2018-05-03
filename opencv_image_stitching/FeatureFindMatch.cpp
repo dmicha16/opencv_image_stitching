@@ -57,6 +57,7 @@ MatchedKeyPoint FeatureFindMatch::get_matched_coordinates() {
 
 void FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images) {
 	RoiCalculator roi_calculator;
+	cout << "img size: " << inc_images[0].size << endl;
 	roi_calculator.set_image(inc_images[0]);
 	roi_calculator.calculate_roi(3, 2, 0.5);	
 	roi_calculator.set_matched_keypoints(matched_keypoints_);
@@ -152,7 +153,7 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 		cout << matched_keypoints_.image_2[i] << endl;*/
 	}
 
-	//keypoint_area_check_(inc_images);
+	keypoint_area_check_(inc_images);
 	matches_drawer_(img_1, keypoints_1, img_2, keypoints_2, filtered_matches);
 	current_matcher->collectGarbage();
 }

@@ -66,10 +66,11 @@ public:
 private:
 	int num_rect_;
 	Rectengales rect_s_;
+	vector<RowDefiner> row_definitions_;
 	Mat image_;
 	int num_images_;
 	MatchedKeyPoint matched_keypoints_;	
-	void write_roi(Mat curr_img);
-	RowDefiner populate_row_definer_(int img_width, int start_height, int offset);
+	void write_roi_();
+	RowDefiner populate_row_definer_(int img_width, unsigned int start_height, int offset);
 };
 
