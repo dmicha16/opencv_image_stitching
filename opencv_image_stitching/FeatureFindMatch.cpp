@@ -60,12 +60,10 @@ bool FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images, int desired_
 	roi_calculator.set_image(inc_images[0]);
 	roi_calculator.set_matched_keypoints(matched_keypoints_);
 	roi_calculator.calculate_roi(3, 2, 0.8);		
-	if (roi_calculator.num_occupied_rects() >= desired_occ_rects) {
+	if (roi_calculator.num_occupied_rects() >= desired_occ_rects)
 		return true;
-	}
-	else {
+	else
 		false;
-	}
 }
 
 void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vector<ImageFeatures> image_features_) {
@@ -77,7 +75,7 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 	Mat img_1 = inc_images[0];
 	Mat img_2 = inc_images[1];
 	vector<KeyPoint> keypoints_1 = image_features_[0].keypoints;
-	vector<KeyPoint> keypoints_2 = image_features_[1].keypoints;
+	vector<KeyPoint> keypoints_2 = image_features_[1].keypoints;	
 
 #pragma region logging
 
@@ -116,17 +114,15 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 	vector<DMatch> filtered_matches;
 
 	//display_pairwise_matches_(pairwise_matches);
-
-	cout << "all_matches.size:" << all_matches.size() << endl;
-	int calculated_threshold = calculate_treshold_(all_matches, threshold_);
-	cout << "threshold: " << endl;
-
+	
+	int calculated_threshold = calculate_treshold_(all_matches, threshold_);	
 	for (size_t i = 0; i < all_matches.size(); i++) {
 
 		if (all_matches[i].distance <= calculated_threshold)
 			filtered_matches.push_back(all_matches[i]);
 	}
 
+#pragma region logging
 	cout << "min hamming of good matches: " << filtered_matches[0].distance << endl;
 	cout << "Good matches #:" << filtered_matches.size() << endl;
 	string filtered_matches_out = "Good Matches #: " + to_string(filtered_matches.size());
@@ -143,19 +139,19 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 		CLOG(msg3, Verbosity::INFO);
 	}
 
-	// This sorts the macthes, so that the macthes with the smallest "distance" are put first in the vector  
-	/*for (size_t i = 0; i < filtered_matches.size() + 1; i++) {
-		sort(filtered_matches.begin(), filtered_matches.begin() + i);
-	}*/
+#pragma endregion // logging	
 
 	matched_keypoints_.image_1.resize(filtered_matches.size());
 	matched_keypoints_.image_2.resize(filtered_matches.size());
 
-	for (size_t i = 0; i < filtered_matches.size(); i++) {
-		matched_keypoints_.image_1[i] = (keypoints_1[filtered_matches[i].queryIdx].pt);
-		matched_keypoints_.image_2[i] = (keypoints_2[filtered_matches[i].trainIdx].pt);
-		/*cout << matched_keypoints_.image_1[i] << endl;
-		cout << matched_keypoints_.image_2[i] << endl;*/
+	for (size_t i = 0; i < filtered_matches.size(); i++) {		
+		matched_keypoints_.image_1[i].x = (keypoints_1[filtered_matches[i].queryIdx].pt.x);
+		matched_keypoints_.image_1[i].y = (keypoints_1[filtered_matches[i].queryIdx].pt.y);
+
+		matched_keypoints_.image_2[i].x = (keypoints_2[filtered_matches[i].trainIdx].pt.x);
+		matched_keypoints_.image_2[i].y = (keypoints_2[filtered_matches[i].trainIdx].pt.y);
+		//cout << matched_keypoints_.image_1[i] << endl;
+		//cout << matched_keypoints_.image_2[i] << endl;
 	}
 
 	bool enough_occupied = keypoint_area_check_(inc_images, 3);
@@ -165,46 +161,18 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 	current_matcher->collectGarbage();
 }
 
-//vector<Mat> FeatureFindMatch::createImageSubset(vector<ImageFeatures> &image_features_, vector<MatchesInfo> pairwise_matches, vector<Mat> inc_images) {
-//
-//	float conf_thresh = 3.f;
-//	int num_images_ = static_cast <int>(inc_images.size());
-//
-//	vector<int> indices = leaveBiggestComponent(image_features_, pairwise_matches, conf_thresh);
-//	vector<Mat> img_subset;
-//	vector<String> img_names_subset;
-//	vector<Size> full_img_sizes_subset;
-//
-//	for (size_t i = 0; i < indices.size(); ++i) {
-//		img_subset.push_back(inc_images[indices[i]]);
-//	}
-//
-//	inc_images = img_subset;
-//
-//	// Check if we still have enough images
-//	num_images_ = static_cast<int>(inc_images.size());
-//	cout << "num_images_: " << num_images_ << endl;
-//	WINPAUSE;
-//	if (num_images_ < 2) {
-//		LOGLN("Need more images");
-//		WINPAUSE;
-//	}
-//
-//	return inc_images;
-//}
-
 int FeatureFindMatch::calculate_treshold_(vector<DMatch> my_matches, float desired_percentage) {
 
 	float calculated_tresh = 0;
 	vector<float> distances;
+	int avarage = 0;
 
 	for (size_t i = 0; i < my_matches.size(); i++)
 		distances.push_back(my_matches[i].distance);
 
 	std::sort(distances.begin(), distances.end(), sort_operator_);
 
-	string dmatches = "DMatches[i]: " + to_string(my_matches.size());
-	int avarage = 0;
+	string dmatches = "DMatches[i]: " + to_string(my_matches.size());	
 	CLOG(dmatches, Verbosity::INFO);
 	cout << dmatches << endl;
 
@@ -228,15 +196,9 @@ void FeatureFindMatch::matches_drawer_(Mat img_1, vector<KeyPoint> keypoints_1, 
 	String output_location = "../opencv_image_stitching/Images/Results/test_1.jpg";
 	vector<char> mask(filtered_matches.size(), 1);
 	Mat output_img;
-
-	try {
-		drawMatches(img_1, keypoints_1, img_2, keypoints_2, filtered_matches, output_img, Scalar::all(-1),
-			Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-	}
-	catch (const std::exception& e) {
-		cout << e.what() << endl;
-		WINPAUSE;
-	}
+	
+	drawMatches(img_1, keypoints_1, img_2, keypoints_2, filtered_matches, output_img, Scalar::all(-1),
+		Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
 	imwrite(output_location, output_img);
 }

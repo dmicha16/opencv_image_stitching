@@ -77,6 +77,6 @@ private:
 	RowDefiner populate_row_definer_(int img_width, unsigned int start_height, int offset);
 	vector<RowDefiner> row_definitions_;
 
-	void write_roi_(int min_height);
+	void write_roi_(float min_height);
 };
 

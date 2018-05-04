@@ -11,8 +11,7 @@ void RoiCalculator::calculate_roi(int desired_cols, int desired_rows, float over
 
 	rect_s_.desginate_rectengales(desired_cols * desired_rows);
 	num_rect_ = rect_s_.rectangles.size();
-
-	//number of pixels
+	
 	const unsigned int img_width = image_.cols - 1;
 	const unsigned int img_height = image_.rows - 1;
 	row_definitions_.resize(desired_rows);
@@ -27,15 +26,14 @@ void RoiCalculator::calculate_roi(int desired_cols, int desired_rows, float over
 
 	for (size_t i = 0; i < row_definitions_.size(); i++) {	
 
-		row_definitions_[i] = populate_row_definer_(img_width, starting_row_heights[i], height_offset);		
-
+		row_definitions_[i] = populate_row_definer_(img_width, starting_row_heights[i], height_offset);
 		//cout << "starting_row_heights " << starting_row_heights[i] << endl;
 	}
 
 	rect_s_.row_definitions = row_definitions_;
 	rect_s_.populate_rectengales(height_offset, desired_cols);
-
-	write_roi_((img_height * overlap));
+	float min_height = (img_height * overlap);
+	write_roi_(min_height);
 }
 
 bool RoiCalculator::check_keypoint() {
@@ -61,56 +59,29 @@ bool RoiCalculator::check_keypoint() {
 	return false;
 }
 
-void RoiCalculator::write_roi_(int min_height) {
+void RoiCalculator::write_roi_(float min_height) {
 
 	String output_location = "../opencv_image_stitching/Images/Results/roi.jpg"; 
-	//vector<KeyPoint> keypoints(row_definitions_.size());
-	//vector<KeyPoint> keypoints1(row_definitions_.size());
-	//vector<KeyPoint> keypoints2(row_definitions_.size());
-
-	////cout << "row def size: " << row_definitions_.size() << endl;
-
-	//for (size_t i = 0; i < row_definitions_.size(); i++) {
-	//	keypoints[i].pt.x = row_definitions_[i].left.x;
-	//	keypoints[i].pt.y = row_definitions_[i].left.y;
-
-	//	keypoints1[i].pt.x = row_definitions_[i].right.x;
-	//	keypoints1[i].pt.y = row_definitions_[i].right.y;
-
-	//	keypoints2[i].pt.x = row_definitions_[i].top_left.x;
-	//	keypoints2[i].pt.y = row_definitions_[i].top_left.y;
-	//}
-	////cout << keypoints[1].pt.x << endl;
-	////cout << keypoints[1].pt.y << endl;
-
-	//drawKeypoints(image_, keypoints, image_, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-	//drawKeypoints(image_, keypoints1, image_, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-	//drawKeypoints(image_, keypoints2, image_, Scalar::all(-1), DrawMatchesFlags::DEFAULT);
-	cout << "how many rects: " << rect_s_.rectangles.size() << endl;
-	for (size_t i = 0; i < rect_s_.rectangles.size(); i++) {
-		rectangle(image_, rect_s_.rectangles[i], Scalar(0, 0, 255), 3, LINE_8, 0);
-	}
-
-	cout << "img size: " << image_.size << endl;
 	Point coord_to_display;
+
+	for (size_t i = 0; i < rect_s_.rectangles.size(); i++)
+		rectangle(image_, rect_s_.rectangles[i], Scalar(0, 0, 255), 3, LINE_8, 0);	
+	
 	for (size_t i = 0; i < matched_keypoints_.image_1.size(); i++) {
 		coord_to_display.x = matched_keypoints_.image_1[i].x;
-		coord_to_display.y = matched_keypoints_.image_1[i].y;
-		//cout << "min height: " << min_height << endl;
-		cout << "display coords : (" << matched_keypoints_.image_1[i].x << ", " << matched_keypoints_.image_1[i].y << ")" << endl;
-		if (coord_to_display.y <= min_height) {
-			drawMarker(image_, coord_to_display, Scalar(0, 0, 255), 100, 50, LINE_8);
-		}
-		else {
+		coord_to_display.y = matched_keypoints_.image_1[i].y;		
+		
+		if (coord_to_display.y > (image_.rows - min_height))
+			drawMarker(image_, coord_to_display, Scalar(0, 0, 255), 100, 50, LINE_8);			
+		else
 			drawMarker(image_, coord_to_display, Scalar(0, 255, 0), 100, 50, LINE_8);
-		}
+
+		//cout << "ELSE display coords : (" << matched_keypoints_.image_1[i].x << ", " << matched_keypoints_.image_1[i].y << ")" << endl;
+		coord_to_display.x = 0;
+		coord_to_display.y = 0;
 	}
 	
-	imwrite(output_location, image_);
-	
-	cout << "imge written" << endl;
-	WINPAUSE;
-	exit(0);
+	imwrite(output_location, image_);		
 }
 
 int RoiCalculator::num_occupied_rects() {
