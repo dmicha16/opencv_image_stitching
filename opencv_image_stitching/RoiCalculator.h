@@ -34,23 +34,24 @@ using namespace cv::detail;
 #define WINPAUSE system("pause")
 #endif
 
-typedef struct Rectengales {
-	vector<Rect> rectengales;
-	void desginate_rectengales(int desired_rect);
-	//void reset_rect();
-};
-
-typedef struct MatchedKeyPoint {
-	vector<Point2f> image_1;
-	vector<Point2f> image_2;
-};
-
 typedef struct RowDefiner {
 	Point2f left;
 	Point2f right;
 	Point2f top_left;
 };
 
+typedef struct Rectengales {
+	vector<Rect> rectangles;
+	vector<RowDefiner> row_definitions;
+	void desginate_rectengales(int desired_rect);
+	void populate_rectengales(int height_offset, int desired_cols);
+	void reset_rect();
+};
+
+typedef struct MatchedKeyPoint {
+	vector<Point2f> image_1;
+	vector<Point2f> image_2;
+};
 
 class RoiCalculator {
 
@@ -62,15 +63,20 @@ public:
 	void calculate_roi(int desired_cols, int desired_rows, float overlap);
 	bool check_keypoint();
 	void set_matched_keypoints(MatchedKeyPoint inc_matched_keypoints);
+	int num_occupied_rects();
 
 private:
 	int num_rect_;
-	Rectengales rect_s_;
-	vector<RowDefiner> row_definitions_;
 	Mat image_;
 	int num_images_;
-	MatchedKeyPoint matched_keypoints_;	
-	void write_roi_();
+
+	Rectengales rect_s_;	
+	
+	MatchedKeyPoint matched_keypoints_;
+
 	RowDefiner populate_row_definer_(int img_width, unsigned int start_height, int offset);
+	vector<RowDefiner> row_definitions_;
+
+	void write_roi_(int min_height);
 };
 

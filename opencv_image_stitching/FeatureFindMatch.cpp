@@ -55,12 +55,17 @@ MatchedKeyPoint FeatureFindMatch::get_matched_coordinates() {
 	return matched_keypoints_;
 }
 
-void FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images) {
+bool FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images, int desired_occ_rects) {
 	RoiCalculator roi_calculator;
-	cout << "img size: " << inc_images[0].size << endl;
 	roi_calculator.set_image(inc_images[0]);
-	roi_calculator.calculate_roi(3, 2, 0.5);	
 	roi_calculator.set_matched_keypoints(matched_keypoints_);
+	roi_calculator.calculate_roi(3, 2, 0.8);		
+	if (roi_calculator.num_occupied_rects() >= desired_occ_rects) {
+		return true;
+	}
+	else {
+		false;
+	}
 }
 
 void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vector<ImageFeatures> image_features_) {
@@ -153,7 +158,9 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 		cout << matched_keypoints_.image_2[i] << endl;*/
 	}
 
-	keypoint_area_check_(inc_images);
+	bool enough_occupied = keypoint_area_check_(inc_images, 3);
+	cout << "enough occupied? : " << enough_occupied << endl;
+	WINPAUSE;
 	matches_drawer_(img_1, keypoints_1, img_2, keypoints_2, filtered_matches);
 	current_matcher->collectGarbage();
 }

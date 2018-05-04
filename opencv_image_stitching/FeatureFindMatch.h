@@ -28,9 +28,9 @@ private:
 	vector<ImageFeatures> image_features_;
 	int num_images_;
 	MatchedKeyPoint matched_keypoints_;
-	float threshold_;
+	float threshold_;	
 
-	void keypoint_area_check_(vector<Mat> inc_images);
+	bool keypoint_area_check_(vector<Mat> inc_images, int desired_occ_rects);
 
 	void match_features_(const vector<Mat> inc_images, const vector<ImageFeatures> strict_features);
 	int calculate_treshold_(vector<DMatch> matches, float desired_percentage);
