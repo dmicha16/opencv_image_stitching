@@ -9,6 +9,9 @@ struct SortOperator {
 FeatureFindMatch::FeatureFindMatch() {
 }
 
+FeatureFindMatch::~FeatureFindMatch() {
+}
+
 void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float inc_threshold) {
 
 	threshold_ = inc_threshold;
@@ -31,7 +34,7 @@ void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float i
 
 		Ptr<ORB> detector_desciptor;
 
-		detector_desciptor = ORB::create(1000, scaleFactor, nlevels, edgeThreshold,
+		detector_desciptor = ORB::create(50000, scaleFactor, nlevels, edgeThreshold,
 			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
 		try {
@@ -56,14 +59,17 @@ MatchedKeyPoint FeatureFindMatch::get_matched_coordinates() {
 }
 
 bool FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images, int desired_occ_rects) {
+
 	RoiCalculator roi_calculator;
 	roi_calculator.set_image(inc_images[0]);
 	roi_calculator.set_matched_keypoints(matched_keypoints_);
-	roi_calculator.calculate_roi(3, 2, 0.8);		
+	roi_calculator.calculate_roi(desired_rectangle_.columns,
+		desired_rectangle_.rows, desired_rectangle_.image_overlap);
+
 	if (roi_calculator.num_occupied_rects() >= desired_occ_rects)
 		return true;
 	else
-		false;
+		return false;
 }
 
 void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vector<ImageFeatures> image_features_) {
@@ -72,22 +78,22 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 	bool try_cuda = false;
 
 	vector<MatchesInfo> pairwise_matches;
-	Mat img_1 = inc_images[0];
-	Mat img_2 = inc_images[1];
-	vector<KeyPoint> keypoints_1 = image_features_[0].keypoints;
-	vector<KeyPoint> keypoints_2 = image_features_[1].keypoints;	
+	image_data_.img_1 = inc_images[0];
+	image_data_.img_2 = inc_images[1];
+	image_data_.keypoints_1 = image_features_[0].keypoints;
+	image_data_.keypoints_2 = image_features_[1].keypoints;
 
 #pragma region logging
 
-	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(keypoints_1.size());
-	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(keypoints_2.size());
+	string keypoints_features_1 = "Keypoints 1 from features i: " + to_string(image_data_.keypoints_1.size());
+	string keypoints_features_2 = "Keypoints 2 from features i: " + to_string(image_data_.keypoints_2.size());
 
 	CLOG(keypoints_features_1, Verbosity::INFO);
 	CLOG(keypoints_features_2, Verbosity::INFO);
 
 	string image_length = "Images length: " + to_string(inc_images.size());
-	string keypoints_length_1 = "Keypoints_1 length: " + to_string(keypoints_1.size());
-	string keypoints_length_2 = "Keypoints_2 length: " + to_string(keypoints_2.size());
+	string keypoints_length_1 = "Keypoints_1 length: " + to_string(image_data_.keypoints_1.size());
+	string keypoints_length_2 = "Keypoints_2 length: " + to_string(image_data_.keypoints_2.size());
 
 	CLOG(image_length, Verbosity::INFO);
 	CLOG(keypoints_length_1, Verbosity::INFO);
@@ -110,55 +116,79 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 		WINPAUSE;
 	}
 
-	vector<DMatch> all_matches = pairwise_matches[1].matches;
-	vector<DMatch> filtered_matches;
-
+	image_data_.all_matches = pairwise_matches[1].matches;	
 	//display_pairwise_matches_(pairwise_matches);
+	filter_matches_(inc_images);
 	
-	int calculated_threshold = calculate_treshold_(all_matches, threshold_);	
-	for (size_t i = 0; i < all_matches.size(); i++) {
+	current_matcher->collectGarbage();
+}
 
-		if (all_matches[i].distance <= calculated_threshold)
-			filtered_matches.push_back(all_matches[i]);
-	}
+void FeatureFindMatch::filter_matches_(const vector<Mat> inc_images) {
+
+	vector<DMatch> filtered_matches;
+	bool enough_occupied = false;
+	int calculated_threshold = 0;
+	int desirec_occupied_rects = desired_rectangle_.desired_occupied;
+
+	do {
+		calculated_threshold = 0;
+		matched_keypoints_.image_1.clear();
+		matched_keypoints_.image_2.clear();
+		filtered_matches.clear();
+
+		calculated_threshold = calculate_treshold_(image_data_.all_matches, threshold_);
+		//cout << "calculated_threshold: " << calculated_threshold << endl;
+
+		for (size_t i = 0; i < image_data_.all_matches.size(); i++) {
+
+			if (image_data_.all_matches[i].distance <= calculated_threshold)
+				filtered_matches.push_back(image_data_.all_matches[i]);
+		}
+		//cout << "filtered_matches.size: " << filtered_matches.size() << endl;
+
+		matched_keypoints_.image_1.resize(filtered_matches.size());
+		matched_keypoints_.image_2.resize(filtered_matches.size());
+
+		for (size_t i = 0; i < filtered_matches.size(); i++) {
+			matched_keypoints_.image_1[i].x = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.x);
+			matched_keypoints_.image_1[i].y = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.y);
+
+			matched_keypoints_.image_2[i].x = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.x);
+			matched_keypoints_.image_2[i].y = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.y);
+			//cout << matched_keypoints_.image_1[i] << endl;
+			//cout << matched_keypoints_.image_2[i] << endl;
+		}
+
+		enough_occupied = keypoint_area_check_(inc_images, desirec_occupied_rects);
+		/*cout << "enough occupied: " << boolalpha << enough_occupied << endl;		
+		cout << "current_threshold: " << calculated_threshold << endl;
+		cout << "threshold_: " << threshold_ << endl;*/
+		threshold_ += 0.1;
+
+	} while ((!enough_occupied) && (threshold_ <= 1));
+
+	cout << "Threshold has been set to: " << threshold_ << endl;	
 
 #pragma region logging
-	cout << "min hamming of good matches: " << filtered_matches[0].distance << endl;
+	/*cout << "min hamming of good matches: " << filtered_matches[0].distance << endl;
 	cout << "Good matches #:" << filtered_matches.size() << endl;
 	string filtered_matches_out = "Good Matches #: " + to_string(filtered_matches.size());
 	CLOG(filtered_matches_out, Verbosity::INFO);
 
 	for (size_t i = 0; i < filtered_matches.size(); i++) {
-		string msg = "Matches distance : " + to_string(i) + to_string(filtered_matches[i].distance);
-		string msg1 = "Matches imgIdx: " + to_string(i) + to_string(filtered_matches[i].imgIdx);
-		string msg2 = "Matches trainIdx: " + to_string(i) + to_string(filtered_matches[i].trainIdx);
-		string msg3 = "Matches queryIdx: " + to_string(i) + to_string(filtered_matches[i].queryIdx);
-		CLOG(msg, Verbosity::INFO);
-		CLOG(msg1, Verbosity::INFO);
-		CLOG(msg2, Verbosity::INFO);
-		CLOG(msg3, Verbosity::INFO);
-	}
+	string msg = "Matches distance : " + to_string(i) + to_string(filtered_matches[i].distance);
+	string msg1 = "Matches imgIdx: " + to_string(i) + to_string(filtered_matches[i].imgIdx);
+	string msg2 = "Matches trainIdx: " + to_string(i) + to_string(filtered_matches[i].trainIdx);
+	string msg3 = "Matches queryIdx: " + to_string(i) + to_string(filtered_matches[i].queryIdx);
+	CLOG(msg, Verbosity::INFO);
+	CLOG(msg1, Verbosity::INFO);
+	CLOG(msg2, Verbosity::INFO);
+	CLOG(msg3, Verbosity::INFO);
+	}*/
 
 #pragma endregion // logging	
-
-	matched_keypoints_.image_1.resize(filtered_matches.size());
-	matched_keypoints_.image_2.resize(filtered_matches.size());
-
-	for (size_t i = 0; i < filtered_matches.size(); i++) {		
-		matched_keypoints_.image_1[i].x = (keypoints_1[filtered_matches[i].queryIdx].pt.x);
-		matched_keypoints_.image_1[i].y = (keypoints_1[filtered_matches[i].queryIdx].pt.y);
-
-		matched_keypoints_.image_2[i].x = (keypoints_2[filtered_matches[i].trainIdx].pt.x);
-		matched_keypoints_.image_2[i].y = (keypoints_2[filtered_matches[i].trainIdx].pt.y);
-		//cout << matched_keypoints_.image_1[i] << endl;
-		//cout << matched_keypoints_.image_2[i] << endl;
-	}
-
-	bool enough_occupied = keypoint_area_check_(inc_images, 3);
-	cout << "enough occupied? : " << enough_occupied << endl;
-	WINPAUSE;
-	matches_drawer_(img_1, keypoints_1, img_2, keypoints_2, filtered_matches);
-	current_matcher->collectGarbage();
+	
+	//matches_drawer_(filtered_matches);
 }
 
 int FeatureFindMatch::calculate_treshold_(vector<DMatch> my_matches, float desired_percentage) {
@@ -172,32 +202,32 @@ int FeatureFindMatch::calculate_treshold_(vector<DMatch> my_matches, float desir
 
 	std::sort(distances.begin(), distances.end(), sort_operator_);
 
-	string dmatches = "DMatches[i]: " + to_string(my_matches.size());	
-	CLOG(dmatches, Verbosity::INFO);
-	cout << dmatches << endl;
-
 	for (size_t i = 0; i < my_matches.size(); i++)
 		avarage = avarage + my_matches[i].distance;
 
 	avarage = avarage / my_matches.size();
+
+#pragma region logging
+	/*string dmatches = "DMatches[i]: " + to_string(my_matches.size());
+	CLOG(dmatches, Verbosity::INFO);
+	cout << dmatches << endl;
 	string avrage = "Avarage: " + to_string(avarage);
 	cout << avrage << endl;
-	CLOG(avrage, Verbosity::INFO);
+	CLOG(avrage, Verbosity::INFO);*/
 
-	calculated_tresh = distances.size() * desired_percentage;
-	calculated_tresh = (int)calculated_tresh;
-	calculated_tresh = distances[calculated_tresh];
+#pragma endregion //logging
 
+	calculated_tresh = distances[(int)distances.size() * desired_percentage];
 	return calculated_tresh;
 }
 
-void FeatureFindMatch::matches_drawer_(Mat img_1, vector<KeyPoint> keypoints_1, Mat img_2, vector<KeyPoint> keypoints_2, vector<DMatch> filtered_matches) {
+void FeatureFindMatch::matches_drawer_(vector<DMatch> filtered_matches) {
 
 	String output_location = "../opencv_image_stitching/Images/Results/test_1.jpg";
 	vector<char> mask(filtered_matches.size(), 1);
 	Mat output_img;
 	
-	drawMatches(img_1, keypoints_1, img_2, keypoints_2, filtered_matches, output_img, Scalar::all(-1),
+	drawMatches(image_data_.img_1, image_data_.keypoints_1, image_data_.img_2, image_data_.keypoints_2, filtered_matches, output_img, Scalar::all(-1),
 		Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
 	imwrite(output_location, output_img);
@@ -221,5 +251,10 @@ void FeatureFindMatch::display_pairwise_matches_(const vector<MatchesInfo> pairw
 	cout << "-----------------------------" << endl << endl;
 }
 
-FeatureFindMatch::~FeatureFindMatch() {
+
+void FeatureFindMatch::set_rectangle_info(int rows, int columns, float overlap, int desired_occupied) {
+	desired_rectangle_.rows = rows;
+	desired_rectangle_.columns = columns;
+	desired_rectangle_.image_overlap = overlap;
+	desired_rectangle_.desired_occupied = desired_occupied;
 }

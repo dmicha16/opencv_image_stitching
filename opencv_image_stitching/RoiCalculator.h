@@ -43,9 +43,9 @@ typedef struct RowDefiner {
 typedef struct Rectengales {
 	vector<Rect> rectangles;
 	vector<RowDefiner> row_definitions;
-	void desginate_rectengales(int desired_rect);
-	void populate_rectengales(int height_offset, int desired_cols);
-	void reset_rect();
+	void desginate_rectangles(int desired_rect);
+	void populate_rectangles(int height_offset, int desired_cols);
+	void reset_rectangles();
 };
 
 typedef struct MatchedKeyPoint {
@@ -70,8 +70,7 @@ private:
 	Mat image_;
 	int num_images_;
 
-	Rectengales rect_s_;	
-	
+	Rectengales rectangles_s_;	
 	MatchedKeyPoint matched_keypoints_;
 
 	RowDefiner populate_row_definer_(int img_width, unsigned int start_height, int offset);

@@ -1,6 +1,6 @@
 #pragma once
 #include "Wrapper.h"
-#include "Undistorter.h"
+//#include "Undistorter.h"
 
 class Stitcher :
 	public Wrapper {

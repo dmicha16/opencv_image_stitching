@@ -1,8 +1,8 @@
 #include "Stitcher.h"
 
-
 Stitcher::Stitcher() {
 }
+
 Mat Stitcher::merging(Mat &img1, Mat &img2) {
 	cout << endl << "Merging() {" << endl << endl;
 
@@ -28,7 +28,6 @@ Mat Stitcher::merging(Mat &img1, Mat &img2) {
 	stitchedImage = res;
 	return stitchedImage;
 }
-
 
 Mat Stitcher::customMerger(Mat &img1, Mat &img2) {
 	cout << endl << "customMerging() {" << endl << endl;
