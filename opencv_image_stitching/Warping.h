@@ -14,9 +14,7 @@ private:
 	int offSetY = 0;
 	int offset_x_ = 0;
 	int prev_offset_y_ = 0;
-	//int pre_offSetX = 0;
 	int new_offset_y_ = 0;
-	//int new_offSetX = 0;
 	int num_features_;
 	vector<Point2f> base_image_pts_;
 	vector<Point2f> dst_pts_;

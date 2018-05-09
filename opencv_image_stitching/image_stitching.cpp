@@ -41,8 +41,8 @@ int main() {
 		/************************************** INIT CURRENT IMAGES *************************************/
 		cout << "first image size - " << images_to_stitch[0].size << endl;
 		cout << "second image size - " << images_to_stitch[1].size << endl;
-		//images_to_stitch[0] = warper.translate(images_to_stitch[0], 350, 0);
-		//images_to_stitch[1] = warper.translate(images_to_stitch[1], 350, 0);
+		images_to_stitch[0] = warper.translate(images_to_stitch[0], 2000, 0);
+		images_to_stitch[1] = warper.translate(images_to_stitch[1], 2000, 0);
 
 #pragma region output_current_images
 		//Mat img1, img2, raw;
@@ -61,7 +61,7 @@ int main() {
 		/************************************** FEATURES *************************************/
 
 		int rows = 3, columns = 3, desired_occupied_rect = 4;
-		float threshold = 0.25, image_overlap = 0.95;		
+		float threshold = 0.5, image_overlap = 0.95;		
 		finder.set_rectangle_info(rows, columns, image_overlap, desired_occupied_rect);
 		finder.find_features(images_to_stitch, threshold);
 		
@@ -77,7 +77,6 @@ int main() {
 		/****************************************** STITCHING *******************************************/
 
 		stitched_img = stitcher.customMerger(images_to_stitch[1], warped_img);
-		//stitched_img = stitcher.merging(images_to_stitch[1], warped_img);
 
 		cout << endl << "Number of Iteration: " << i + 1 << endl;
 
@@ -96,8 +95,8 @@ int main() {
 
 	}
 	Mat stitched;
-	//resize(stitched_img, stitched, cvSize(0, 0), 0.3, 0.3);
-	//imshow("Stitched image", stitched);
+	resize(stitched_img, stitched, cvSize(0, 0), 0.01, 0.01);
+	imshow("Stitched image", stitched);
 	String output_location = "../opencv_image_stitching/Images/Results/result4.jpg";
 	imwrite(output_location, stitched_img);
 

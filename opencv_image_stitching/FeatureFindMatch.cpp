@@ -34,11 +34,10 @@ void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float i
 
 		Ptr<ORB> detector_desciptor;
 
-		detector_desciptor = ORB::create(50000, scaleFactor, nlevels, edgeThreshold,
-			firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
+		detector_desciptor = ORB::create(50000, scaleFactor, nlevels, edgeThreshold, firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
+		InputArray mask = noArray();
 		try {
-			InputArray mask = noArray();
 			detector_desciptor->detectAndCompute(inc_images[i], mask, image_features_[i].keypoints, image_features_[i].descriptors);
 		}
 		catch (const std::exception& e) {
@@ -168,7 +167,7 @@ void FeatureFindMatch::filter_matches_(const vector<Mat> inc_images) {
 	} while ((!enough_occupied) && (threshold_ <= 1));
 
 	cout << "Threshold has been set to: " << threshold_ << endl;	
-
+	cout << "Good matches #:" << filtered_matches.size() << endl;
 #pragma region logging
 	/*cout << "min hamming of good matches: " << filtered_matches[0].distance << endl;
 	cout << "Good matches #:" << filtered_matches.size() << endl;

@@ -30,22 +30,24 @@ Mat Stitcher::merging(Mat &img1, Mat &img2) {
 }
 
 Mat Stitcher::customMerger(Mat &img1, Mat &img2) {
-	cout << endl << "customMerging() {" << endl << endl;
+	cout << "customMerging() {" << endl;
 
 	cout << "img1.cols = " << img1.cols << endl;
-	cout << "img2.cols = " << img2.cols << endl << endl;
+	cout << "img2.cols = " << img2.cols << endl;
+	cout << "img1.rows = " << img1.rows << endl;
+	cout << "img2.rows = " << img2.rows << endl;
 
 	// Get dimension of final image
 	int rows = max(img1.rows, img2.rows);
 	int cols = max(img1.cols, img2.cols);
 
-	cout << "rows = " << rows << endl;
-	cout << "cols = " << cols << endl << endl;
+	//cout << "rows = " << rows << endl;
+	//cout << "cols = " << cols << endl;
 
 	// Create a black image
 	Mat3b res(rows, cols, Vec3b(0, 0, 0));
-	cout << "res.size() = " << res.size() << endl;
-	cout << "}" << endl << endl;
+	//cout << "res.size() = " << res.size() << endl;
+	cout << "}" << endl;
 
 
 	// Copy images in correct position

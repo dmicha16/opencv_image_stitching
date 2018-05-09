@@ -13,22 +13,19 @@ Mat Warping::warp(Mat image, MatchedKeyPoint features) {
 Mat Warping::perspective_warping_(Mat &img) {
 	cout << "Perspective() {" << endl;
 
-	double threshold = (num_features_ / 25) - 1;
-	double iterations = (0.9893 * pow(threshold, 3)) - (22.0776 * pow(threshold, 2)) + (132.1516 * threshold) - 0.1395;
-
-	cout << "thresHold = " << threshold << endl;
-	cout << "iterations = " << iterations << endl;
+	//double threshold = (num_features_ / 25) - 1;
+	//double iterations = (0.9893 * pow(threshold, 3)) - (22.0776 * pow(threshold, 2)) + (132.1516 * threshold) - 0.1395;
 
 	// Find homography (pixel != black)
 	//Mat h = findHomography(baseImagePts_, dstPts_, RANSAC, thresHold, noArray(), iterations);
-	Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, 7);
-	//Mat h = findHomography(baseImagePts_, dstPts_, LMEDS);
+	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, 7);
+	Mat h = findHomography(base_image_pts_, dst_pts_, LMEDS);
 	//Mat h = findHomography(baseImagePts_, dstPts_, RHO, 5); // 4
 	//cout << endl << "homography = " << endl << h << endl << endl;
 
 	prev_offset_y_ = new_offset_y_;
 	cout << "pre_offSetY = " << prev_offset_y_ << endl;
-	// Find the needed canvas size 
+	// Finding the needed canvas size 
 	offset_x_ = h.at<double>(0, 2);
 	offSetY = h.at<double>(1, 2);
 	//cout << "offSetX = " << offSetX << endl;
@@ -41,12 +38,12 @@ Mat Warping::perspective_warping_(Mat &img) {
 	Mat warpedImage;
 	warpPerspective(img, warpedImage, h, Size(img.cols, img.rows + new_offset_y_));
 
-	cout << "}" << endl << endl;
+	cout << "}" << endl;
 	return warpedImage;
 }
 
 void Warping::vector_split_(MatchedKeyPoint features) {
-	cout << endl << "vector_split_() {" << endl;
+	cout << "vector_split_() {" << endl;
 
 	base_image_pts_.resize(features.image_1.size());
 	dst_pts_.resize(features.image_2.size());
@@ -60,7 +57,7 @@ void Warping::vector_split_(MatchedKeyPoint features) {
 	//cout << "pts_dst = " << endl << dstPts_ << endl << endl;
 
 	num_features_ = features.image_1.size();
-	cout << "}" << endl << endl;
+	cout << "}" << endl;
 }
 
 
