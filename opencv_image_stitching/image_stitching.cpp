@@ -39,10 +39,15 @@ int main() {
 	for (size_t i = 0; i < raw_images.size() - 1; i++) {
 
 		/************************************** INIT CURRENT IMAGES *************************************/
-		cout << "first image size - " << images_to_stitch[0].size << endl;
-		cout << "second image size - " << images_to_stitch[1].size << endl;
-		images_to_stitch[0] = warper.translate(images_to_stitch[0], 2000, 0);
-		images_to_stitch[1] = warper.translate(images_to_stitch[1], 2000, 0);
+		std::cout << endl << "Number of Iteration: " << i + 1 << endl;
+
+		std::cout << "first image size - " << images_to_stitch[0].size << endl;
+		std::cout << "second image size - " << images_to_stitch[1].size << endl;
+
+		int offsetX = images_to_stitch[1].cols *1.25;
+		cout << "offsetX = " << offsetX << endl;
+		images_to_stitch[0] = warper.translate(images_to_stitch[0], offsetX, 0);
+		images_to_stitch[1] = warper.translate(images_to_stitch[1], offsetX, 0);
 
 #pragma region output_current_images
 		//Mat img1, img2, raw;
@@ -78,14 +83,24 @@ int main() {
 
 		stitched_img = stitcher.customMerger(images_to_stitch[1], warped_img);
 
-		cout << endl << "Number of Iteration: " << i + 1 << endl;
-
 		if (i < (raw_images.size() - 2)) {
-			images_to_stitch.empty();
-			images_to_stitch[0] = stitched_img;
+			images_to_stitch[0].release();
+			images_to_stitch[1].release();
+
+			Mat reduced_stitched_img;
+			if (i == 0) {
+				cout << "image reduced by: " << offsetX * 0.5 << " cols" << endl;
+				reduced_stitched_img = stitched_img.colRange(0, stitched_img.cols - (offsetX*0.5));
+			}
+			else {
+				cout << "image reduced by: " << offsetX * 0.85 << " cols" << endl;
+				reduced_stitched_img = stitched_img.colRange(0, stitched_img.cols - (offsetX*0.85));
+			}
+
+			images_to_stitch[0] = reduced_stitched_img;
 			images_to_stitch[1] = raw_images[i + 2];
 
-			stitched_img.empty();
+			stitched_img.release();
 			/*Mat inter;
 			resize(images_to_stitch[0], inter, cvSize(0, 0), 0.4, 0.4);
 			string int_name = "inter image" + to_string(i);*/
@@ -94,13 +109,14 @@ int main() {
 		}
 
 	}
-	Mat stitched;
-	resize(stitched_img, stitched, cvSize(0, 0), 0.01, 0.01);
-	imshow("Stitched image", stitched);
-	String output_location = "../opencv_image_stitching/Images/Results/result4.jpg";
-	imwrite(output_location, stitched_img);
+	//Mat stitched;
+	//resize(stitched_img, stitched, cvSize(0, 0), 0.01, 0.01);
+	//imshow("Stitched image", stitched);
+	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist2.jpg";
+	cv::imwrite(output_location, stitched_img);
 
 
-	cout << endl << "------------ MISSION COMPLETE ------------" << endl;
-	waitKey(0);
+	std::cout << endl << "------------ MISSION COMPLETE ------------" << endl;
+	WINPAUSE;
+	cv::waitKey(0);
 }
