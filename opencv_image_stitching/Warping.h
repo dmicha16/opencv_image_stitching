@@ -11,8 +11,6 @@ public:
 	~Warping();
 
 private:
-	int offSetY = 0;
-	int offset_x_ = 0;
 	int prev_offset_y_ = 0;
 	int new_offset_y_ = 0;
 	int num_features_;
