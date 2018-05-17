@@ -1,5 +1,8 @@
 #include "FeatureFindMatch.h"
 
+#include <windows.h> // for EXCEPTION_ACCESS_VIOLATION
+#include <excpt.h>
+
 struct SortOperator {
 	bool operator() (int i, int j) {
 		return (i < j);
@@ -16,45 +19,46 @@ void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float i
 
 	threshold_ = inc_threshold;
 	num_images_ = static_cast <int>(inc_images.size());
+	image_features_.clear();
 	image_features_.resize(num_images_);
 	string features_out;
 
+	float scaleFactor = 1.2f;
+	int nlevels = 8;
+	int edgeThreshold = 31;
+	int firstLevel = 0;
+	int WTA_K = 2;
+	int scoreType = ORB::HARRIS_SCORE;
+	int patchSize = 31;
+	int fastThreshold = 20;
+
+	Ptr<ORB> detector_desciptor;	
+
 	for (int i = 0; i < num_images_; ++i) {
 
-		features_out = "Features in image #";
+		features_out = "Features in image #";				
 
-		float scaleFactor = 1.2f;
-		int nlevels = 8;
-		int edgeThreshold = 31;
-		int firstLevel = 0;
-		int WTA_K = 2;
-		int scoreType = ORB::HARRIS_SCORE;
-		int patchSize = 31;
-		int fastThreshold = 20;
+		detector_desciptor = ORB::create(100000, scaleFactor, nlevels, edgeThreshold, firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
-		Ptr<ORB> detector_desciptor;
-
-		try {
-			detector_desciptor = ORB::create(100000, scaleFactor, nlevels, edgeThreshold, firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
-		}
-		catch (const std::exception& e) {
-			cout << e.what() << endl;
-		}
-
-		InputArray mask = noArray();
+		InputArray mask = noArray();		
 		try {
 			detector_desciptor->detectAndCompute(inc_images[i], mask, image_features_[i].keypoints, image_features_[i].descriptors); //// This is still given issues 
+			detector_desciptor->clear();
+			detector_desciptor.release();
 		}
-		catch (const std::exception& e) {
-			cout << e.what() << endl;
+		catch (const std::exception& exception) {
+			cout << exception.what() << endl;
+			WINPAUSE;
 		}
 
 		image_features_[i].img_idx = i;
 		features_out += to_string(i + 1) + ": " + to_string(image_features_[i].keypoints.size());
 		CLOG(features_out, Verbosity::INFO);
 		LOGLN(features_out);
+		LOGLN("Current ORB iteration: " << i);
 
 	}
+	detector_desciptor.release();
 	match_features_(inc_images, image_features_);
 }
 
