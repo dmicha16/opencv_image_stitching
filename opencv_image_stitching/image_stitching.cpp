@@ -44,7 +44,7 @@ int main() {
 		std::cout << "first image size - " << images_to_stitch[0].size << endl;
 		std::cout << "second image size - " << images_to_stitch[1].size << endl;
 
-		int offsetX = images_to_stitch[1].cols *1.25;
+		int offsetX = images_to_stitch[1].cols *1.5;
 		cout << "offsetX = " << offsetX << endl;
 		images_to_stitch[0] = warper.translate(images_to_stitch[0], offsetX, 0);
 		images_to_stitch[1] = warper.translate(images_to_stitch[1], offsetX, 0);
@@ -89,12 +89,14 @@ int main() {
 
 			Mat reduced_stitched_img;
 			if (i == 0) {
-				cout << "image reduced by: " << offsetX * 0.5 << " cols" << endl;
-				reduced_stitched_img = stitched_img.colRange(0, stitched_img.cols - (offsetX*0.5));
+				double correction = 0.10;
+				cout << "image reduced by: " << offsetX * correction << " cols" << endl;
+				reduced_stitched_img = stitched_img.colRange(0, stitched_img.cols - (offsetX * correction));
 			}
 			else {
-				cout << "image reduced by: " << offsetX * 0.85 << " cols" << endl;
-				reduced_stitched_img = stitched_img.colRange(0, stitched_img.cols - (offsetX*0.85));
+				double correction = 0.85;
+				cout << "image reduced by: " << offsetX * correction << " cols" << endl;
+				reduced_stitched_img = stitched_img.colRange(0, stitched_img.cols - (offsetX * correction));
 			}
 
 			images_to_stitch[0] = reduced_stitched_img;
@@ -106,13 +108,16 @@ int main() {
 			string int_name = "inter image" + to_string(i);*/
 			//imshow(int_name, inter);
 			//break;
+			String output_location = "../opencv_image_stitching/Images/Results/PROSAC7_intermediary#" + to_string(i+1) + "_0.5.jpg";
+			cv::imwrite(output_location, reduced_stitched_img);
 		}
-
 	}
+
 	//Mat stitched;
 	//resize(stitched_img, stitched, cvSize(0, 0), 0.01, 0.01);
 	//imshow("Stitched image", stitched);
-	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist2.jpg";
+
+	String output_location = "../opencv_image_stitching/Images/Results/PROSAC7_0.5.jpg";
 	cv::imwrite(output_location, stitched_img);
 
 

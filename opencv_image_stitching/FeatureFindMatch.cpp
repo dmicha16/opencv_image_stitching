@@ -43,7 +43,7 @@ void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float i
 
 		InputArray mask = noArray();
 		try {
-			detector_desciptor->detectAndCompute(inc_images[i], mask, image_features_[i].keypoints, image_features_[i].descriptors);
+			detector_desciptor->detectAndCompute(inc_images[i], mask, image_features_[i].keypoints, image_features_[i].descriptors); //// This is still given issues 
 		}
 		catch (const std::exception& e) {
 			cout << e.what() << endl;
@@ -143,8 +143,8 @@ void FeatureFindMatch::filter_matches_(const vector<Mat> inc_images) {
 	bool enough_occupied = false;
 	int calculated_threshold = 0;
 	int desirec_occupied_rects = desired_rectangle_.desired_occupied;
-
-	/*do {
+	/*
+	do {
 		calculated_threshold = 0;
 		matched_keypoints_.image_1.clear();
 		matched_keypoints_.image_2.clear();
@@ -177,8 +177,19 @@ void FeatureFindMatch::filter_matches_(const vector<Mat> inc_images) {
 		//cout << "current_threshold: " << calculated_threshold << endl;
 		cout << "threshold_: " << threshold_ << endl;
 		threshold_ += 0.1;
-	} while ((!enough_occupied) && (threshold_ <= 1));*/
 
+		if (enough_occupied == false) {
+		threshold_ += 0.1;
+		}
+		if (threshold_ == 1) {
+		cout << "threshold_ IF Statement" << endl;
+		enough_occupied = true;
+		}
+		enough_occupied = true; ///////////
+
+	} while ((!enough_occupied) && (threshold_ <= 1));
+	*/
+	
 	while ((!enough_occupied) && (threshold_ <= 1)){
 		matched_keypoints_.image_1.clear();
 		matched_keypoints_.image_2.clear();
@@ -211,12 +222,13 @@ void FeatureFindMatch::filter_matches_(const vector<Mat> inc_images) {
 		//cout << "current_threshold: " << calculated_threshold << endl;
 		cout << "threshold_: " << threshold_ << endl;
 
-		if (enough_occupied == false) {
-			threshold_ += 0.1;
-		}
 		if (threshold_ == 1) {
 			cout << "threshold_ IF Statement" << endl;
 			enough_occupied = true;
+		}
+
+		if (enough_occupied == false) {
+			threshold_ += 0.1;
 		}
 	}
 

@@ -6,11 +6,15 @@ class Warping :
 	public Wrapper {
 public:
 	Warping();
-	Mat warp(Mat image, MatchedKeyPoint features);
-	Mat translate(Mat img, int offsetx, int offsety);
+	Mat warp(Mat &image, MatchedKeyPoint features);
+	Mat translate(Mat &img, int offsetx, int offsety);
 	~Warping();
 
 private:
+
+	int iteration = 0;
+	double dist;
+
 	int prev_offset_y_ = 0;
 	int new_offset_y_ = 0;
 	int num_features_;
