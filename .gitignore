@@ -262,4 +262,10 @@ __pycache__/
 /opencv_image_stitching/json.hpp
 /opencv_image_stitching/edu_properties.props
 /opencv_image_stitching/openCV_edu.props
+<<<<<<< HEAD
 opencv_image_stitching/opencv_image_stitching.vcxproj
+=======
+opencv_image_stitching/Composition.cpp
+opencv_image_stitching/Composition.h
+opencv_image_stitching/Composition.h
+>>>>>>> c6654fb00ed4b57e4a7c86ec6e7c94e7a1cb2657

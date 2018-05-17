@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClInclude Include="ImageReader.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="RoiCalculator.h" />
     <ClInclude Include="Stitcher.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Undistorter.h" />
@@ -165,13 +166,13 @@
   <ItemGroup>
     <ClCompile Include="ImageReader.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="RoiCalculator.cpp" />
     <ClCompile Include="Stitcher.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Undistorter.cpp" />
     <ClCompile Include="Composition.cpp" />
     <ClCompile Include="FeatureFindMatch.cpp" />
     <ClCompile Include="image_stitching.cpp" />
-    <ClCompile Include="opencv_image_stitching.cpp" />
     <ClCompile Include="Wrapper.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
