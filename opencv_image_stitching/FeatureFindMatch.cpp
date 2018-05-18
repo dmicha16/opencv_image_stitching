@@ -15,10 +15,10 @@ FeatureFindMatch::FeatureFindMatch() {
 FeatureFindMatch::~FeatureFindMatch() {
 }
 
-void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float inc_threshold) {
+void FeatureFindMatch::find_features(const float inc_threshold) {
 
 	threshold_ = inc_threshold;
-	num_images_ = static_cast <int>(inc_images.size());
+	num_images_ = static_cast <int>(inc_images_.size());
 	image_features_.clear();
 	image_features_.resize(num_images_);
 	string features_out;
@@ -42,7 +42,7 @@ void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float i
 
 		InputArray mask = noArray();		
 		try {
-			detector_desciptor->detectAndCompute(inc_images[i], mask, image_features_[i].keypoints, image_features_[i].descriptors); //// This is still given issues 
+			detector_desciptor->detectAndCompute(inc_images_[i], mask, image_features_[i].keypoints, image_features_[i].descriptors); //// This is still given issues 
 			detector_desciptor->clear();
 			detector_desciptor.release();
 		}
@@ -59,17 +59,21 @@ void FeatureFindMatch::find_features(const vector<Mat> inc_images, const float i
 
 	}
 	detector_desciptor.release();
-	match_features_(inc_images, image_features_);
+	match_features_();
+}
+
+void FeatureFindMatch::set_images(vector<Mat> images) {
+	inc_images_ = images;
 }
 
 MatchedKeyPoint FeatureFindMatch::get_matched_coordinates() {
 	return matched_keypoints_;
 }
 
-bool FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images, int desired_occ_rects) {
+bool FeatureFindMatch::keypoint_area_check_(int desired_occ_rects) {
 
 	RoiCalculator roi_calculator;
-	roi_calculator.set_image(inc_images[0]);
+	roi_calculator.set_image(inc_images_[0]);
 	roi_calculator.set_matched_keypoints(matched_keypoints_);
 	roi_calculator.calculate_roi(desired_rectangle_.columns,
 		desired_rectangle_.rows, desired_rectangle_.image_overlap);
@@ -89,14 +93,14 @@ bool FeatureFindMatch::keypoint_area_check_(vector<Mat> inc_images, int desired_
 	}
 }
 
-void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vector<ImageFeatures> image_features_) {
+void FeatureFindMatch::match_features_() {
 
 	float match_conf = 0.3f;
 	bool try_cuda = false;
 
 	vector<MatchesInfo> pairwise_matches;
-	image_data_.img_1 = inc_images[0];
-	image_data_.img_2 = inc_images[1];
+	image_data_.img_1 = inc_images_[0];
+	image_data_.img_2 = inc_images_[1];
 	image_data_.keypoints_1 = image_features_[0].keypoints;
 	image_data_.keypoints_2 = image_features_[1].keypoints;
 
@@ -108,7 +112,7 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 	CLOG(keypoints_features_1, Verbosity::INFO);
 	CLOG(keypoints_features_2, Verbosity::INFO);
 
-	string image_length = "Images length: " + to_string(inc_images.size());
+	string image_length = "Images length: " + to_string(inc_images_.size());
 	string keypoints_length_1 = "Keypoints_1 length: " + to_string(image_data_.keypoints_1.size());
 	string keypoints_length_2 = "Keypoints_2 length: " + to_string(image_data_.keypoints_2.size());
 
@@ -136,12 +140,12 @@ void FeatureFindMatch::match_features_(const vector<Mat> inc_images, const vecto
 
 	image_data_.all_matches = pairwise_matches[1].matches;	
 	//display_pairwise_matches_(pairwise_matches);
-	filter_matches_(inc_images);
+	filter_matches_();
 
 	current_matcher->collectGarbage();
 }
 
-void FeatureFindMatch::filter_matches_(const vector<Mat> inc_images) {
+void FeatureFindMatch::filter_matches_() {
 
 	vector<DMatch> filtered_matches;
 	bool enough_occupied = false;
@@ -193,48 +197,70 @@ void FeatureFindMatch::filter_matches_(const vector<Mat> inc_images) {
 
 	} while ((!enough_occupied) && (threshold_ <= 1));
 	*/
-	
-	while ((!enough_occupied) && (threshold_ <= 1)){
-		matched_keypoints_.image_1.clear();
-		matched_keypoints_.image_2.clear();
-		filtered_matches.clear();
 
-		calculated_threshold = calculate_treshold_(image_data_.all_matches, threshold_);
-		cout << "calculated_threshold: " << calculated_threshold << endl;
+	calculated_threshold = calculate_treshold_(image_data_.all_matches, threshold_);
 
-		for (size_t i = 0; i < image_data_.all_matches.size(); i++) {
+	for (size_t i = 0; i < image_data_.all_matches.size(); i++) {
 
-			if (image_data_.all_matches[i].distance <= calculated_threshold)
-				filtered_matches.push_back(image_data_.all_matches[i]);
-		}
-		cout << "filtered_matches.size: " << filtered_matches.size() << endl;
-
-		matched_keypoints_.image_1.resize(filtered_matches.size());
-		matched_keypoints_.image_2.resize(filtered_matches.size());
-
-		for (size_t i = 0; i < filtered_matches.size(); i++) {
-			matched_keypoints_.image_1[i].x = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.x);
-			matched_keypoints_.image_1[i].y = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.y);
-
-			matched_keypoints_.image_2[i].x = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.x);
-			matched_keypoints_.image_2[i].y = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.y);
-			//cout << matched_keypoints_.image_1[i] << endl;
-			//cout << matched_keypoints_.image_2[i] << endl;
-		}
-		enough_occupied = keypoint_area_check_(inc_images, desirec_occupied_rects);
-		cout << "enough occupied: " << boolalpha << enough_occupied << endl;
-		//cout << "current_threshold: " << calculated_threshold << endl;
-		cout << "threshold_: " << threshold_ << endl;
-
-		if (threshold_ == 1) {
-			cout << "threshold_ IF Statement" << endl;
-			enough_occupied = true;
-		}
-
-		if (enough_occupied == false) {
-			threshold_ += 0.1;
-		}
+		if (image_data_.all_matches[i].distance <= calculated_threshold)
+			filtered_matches.push_back(image_data_.all_matches[i]);
 	}
+	cout << "filtered_matches.size: " << filtered_matches.size() << endl;
+
+	matched_keypoints_.image_1.resize(filtered_matches.size());
+	matched_keypoints_.image_2.resize(filtered_matches.size());
+
+	for (size_t i = 0; i < filtered_matches.size(); i++) {
+		matched_keypoints_.image_1[i].x = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.x);
+		matched_keypoints_.image_1[i].y = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.y);
+
+		matched_keypoints_.image_2[i].x = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.x);
+		matched_keypoints_.image_2[i].y = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.y);
+		//cout << matched_keypoints_.image_1[i] << endl;
+		//cout << matched_keypoints_.image_2[i] << endl;
+	}
+	
+	//while ((!enough_occupied) && (threshold_ <= 1)){
+	//	matched_keypoints_.image_1.clear();
+	//	matched_keypoints_.image_2.clear();
+	//	filtered_matches.clear();
+
+	//	calculated_threshold = calculate_treshold_(image_data_.all_matches, threshold_);
+	//	cout << "calculated_threshold: " << calculated_threshold << endl;
+
+	//	for (size_t i = 0; i < image_data_.all_matches.size(); i++) {
+
+	//		if (image_data_.all_matches[i].distance <= calculated_threshold)
+	//			filtered_matches.push_back(image_data_.all_matches[i]);
+	//	}
+	//	cout << "filtered_matches.size: " << filtered_matches.size() << endl;
+
+	//	matched_keypoints_.image_1.resize(filtered_matches.size());
+	//	matched_keypoints_.image_2.resize(filtered_matches.size());
+
+	//	for (size_t i = 0; i < filtered_matches.size(); i++) {
+	//		matched_keypoints_.image_1[i].x = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.x);
+	//		matched_keypoints_.image_1[i].y = (image_data_.keypoints_1[filtered_matches[i].queryIdx].pt.y);
+
+	//		matched_keypoints_.image_2[i].x = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.x);
+	//		matched_keypoints_.image_2[i].y = (image_data_.keypoints_2[filtered_matches[i].trainIdx].pt.y);
+	//		//cout << matched_keypoints_.image_1[i] << endl;
+	//		//cout << matched_keypoints_.image_2[i] << endl;
+	//	}
+	//	enough_occupied = keypoint_area_check_(desirec_occupied_rects);
+	//	cout << "enough occupied: " << boolalpha << enough_occupied << endl;
+	//	//cout << "current_threshold: " << calculated_threshold << endl;
+	//	cout << "threshold_: " << threshold_ << endl;
+
+	//	if (threshold_ == 1) {
+	//		cout << "threshold_ IF Statement" << endl;
+	//		enough_occupied = true;
+	//	}
+
+	//	if (enough_occupied == false) {
+	//		threshold_ += 0.1;
+	//	}
+	//}
 
 	cout << "Threshold has been set to: " << threshold_ << endl;	
 	cout << "Good matches #:" << filtered_matches.size() << endl;
@@ -319,7 +345,6 @@ void FeatureFindMatch::display_pairwise_matches_(const vector<MatchesInfo> pairw
 	cout << "}" << endl;
 	cout << "-----------------------------" << endl << endl;
 }
-
 
 void FeatureFindMatch::set_rectangle_info(int rows, int columns, float overlap, int desired_occupied) {
 	desired_rectangle_.rows = rows;

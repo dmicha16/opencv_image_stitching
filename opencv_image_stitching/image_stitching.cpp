@@ -68,7 +68,8 @@ int main() {
 		int rows = 3, columns = 3, desired_occupied_rect = 4;
 		float threshold = 0.5, image_overlap = 0.95;		
 		finder.set_rectangle_info(rows, columns, image_overlap, desired_occupied_rect);
-		finder.find_features(images_to_stitch, threshold);
+		finder.set_images(images_to_stitch);
+		finder.find_features(threshold);
 		
 		MatchedKeyPoint matched_key_points = finder.get_matched_coordinates();
 
