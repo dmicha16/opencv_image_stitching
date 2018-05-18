@@ -11,7 +11,7 @@ int main() {
 	INIT_CLOGGING;
 
 	ADD_FILE("clogging.log");
-	cv::ocl::setUseOpenCL(false);
+	//cv::ocl::setUseOpenCL(false);
 
 	Stitcher stitcher;
 	Warping warper;
