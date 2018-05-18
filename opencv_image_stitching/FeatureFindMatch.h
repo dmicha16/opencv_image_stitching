@@ -26,8 +26,8 @@ public:
 	void find_features(const float inc_threshold);
 	void set_images(vector<Mat> images);
 	MatchedKeyPoint get_matched_coordinates();
-private:
 
+private:
 	vector<ImageFeatures> image_features_;
 	vector<Mat> inc_images_;
 	int num_images_;
@@ -43,6 +43,7 @@ private:
 	int calculate_treshold_(vector<DMatch> matches, float desired_percentage);
 	void matches_drawer_(vector<DMatch> good_matches);
 	void display_pairwise_matches_(const vector<MatchesInfo> pairwise_matches);
+	vector<Mat> calculate_temp_images();
 
 	//vector<Mat> createImageSubset(vector<ImageFeatures> &strict_features, vector<MatchesInfo> pairwise_matches, vector<Mat> images);
 };

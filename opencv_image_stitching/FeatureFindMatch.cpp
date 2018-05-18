@@ -32,37 +32,56 @@ void FeatureFindMatch::find_features(const float inc_threshold) {
 	int patchSize = 31;
 	int fastThreshold = 20;
 
-	Ptr<ORB> detector_desciptor;	
+	Ptr<ORB> detector_desciptor;
+
+	vector<ImageFeatures> temp_features(num_images_);
+	vector<Mat> temp_images = calculate_temp_images();
 
 	for (int i = 0; i < num_images_; ++i) {
 
-		features_out = "Features in image #";				
+		temp_features[i].descriptors.release();
+		temp_features[i].keypoints.clear();
+
+		features_out = "Features in image #";
+		LOGLN("image_features_[" << i << "].keypoints.size: " << temp_features[i].keypoints.size());
+		LOGLN("image_features_[" << i << "].descriptors.size: " << temp_features[i].descriptors.size());
+		LOGLN("temp_images size: " << temp_images[i].size);
+		temp_features[i].descriptors.create(50, 100000, UMatUsageFlags::USAGE_ALLOCATE_HOST_MEMORY);
+		temp_features[i].keypoints.reserve(100000);
 
 		detector_desciptor = ORB::create(100000, scaleFactor, nlevels, edgeThreshold, firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
 		InputArray mask = noArray();		
 		try {
-			detector_desciptor->detectAndCompute(inc_images_[i], mask, image_features_[i].keypoints, image_features_[i].descriptors); //// This is still given issues 
-			detector_desciptor->clear();
-			detector_desciptor.release();
+			detector_desciptor->detectAndCompute(temp_images[i], mask, temp_features[i].keypoints, temp_features[i].descriptors); //// This is still given issues 			
 		}
 		catch (const std::exception& exception) {
 			cout << exception.what() << endl;
 			WINPAUSE;
 		}
+		LOGLN("AFTER temp_images size: " << inc_images_[i].size);
+		LOGLN("AFTER image_features_[" << i << "].keypoints.size: " << temp_features[i].keypoints.size());
+		LOGLN("AFTER image_features_[" << i << "].descriptors.size: " << temp_features[i].descriptors.size());
 
-		image_features_[i].img_idx = i;
-		features_out += to_string(i + 1) + ": " + to_string(image_features_[i].keypoints.size());
+		temp_features[i].img_idx = i;
+		features_out += to_string(i + 1) + ": " + to_string(temp_features[i].keypoints.size());
 		CLOG(features_out, Verbosity::INFO);
 		LOGLN(features_out);
 		LOGLN("Current ORB iteration: " << i);
-
+				
+		detector_desciptor->clear();
+		detector_desciptor.release();
+	}
+	for (size_t i = 0; i < num_images_; i++) {
+		image_features_[i].descriptors = temp_features[i].descriptors.clone();
+		image_features_[i].keypoints = temp_features[i].keypoints;
 	}
 	detector_desciptor.release();
 	match_features_();
 }
 
 void FeatureFindMatch::set_images(vector<Mat> images) {
+	inc_images_.clear();
 	inc_images_ = images;
 }
 
@@ -344,6 +363,33 @@ void FeatureFindMatch::display_pairwise_matches_(const vector<MatchesInfo> pairw
 	}
 	cout << "}" << endl;
 	cout << "-----------------------------" << endl << endl;
+}
+
+vector<Mat> FeatureFindMatch::calculate_temp_images() {
+
+	vector<Mat> temp_images(2);
+	Rect second_img_size;
+
+	LOGLN("inc image size 0: " << inc_images_[0].size);
+	LOGLN("inc image size 1: " << inc_images_[1].size);
+
+	second_img_size.x = 0;
+	second_img_size.y = 0;
+	second_img_size.width = inc_images_[0].cols;
+	second_img_size.height = inc_images_[1].rows;
+	
+	Mat temp_image_holder;
+	//inc_images_[0].copyTo(temp_image_holder(second_img_size));
+	inc_images_[0](Rect(second_img_size)).copyTo(temp_image_holder);
+	LOGLN("did i get here");
+
+	temp_images[0] = temp_image_holder;
+	temp_images[1] = inc_images_[1];
+
+	LOGLN("temp image size 0: " << temp_images[0].size);
+	LOGLN("temp image size 1: " << temp_images[1].size);
+
+	return temp_images;
 }
 
 void FeatureFindMatch::set_rectangle_info(int rows, int columns, float overlap, int desired_occupied) {
