@@ -68,7 +68,7 @@ int main() {
 		/************************************** FEATURES *************************************/
 
 		int rows = 3, columns = 3, desired_occupied_rect = 4;
-		float threshold = 0.5, image_overlap = 0.95;		
+		float threshold = 0.5, image_overlap = 0.35;		
 		finder.set_rectangle_info(rows, columns, image_overlap, desired_occupied_rect);
 		finder.set_images(images_to_stitch);
 		finder.find_features(threshold, i);

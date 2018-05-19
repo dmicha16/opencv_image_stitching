@@ -36,6 +36,7 @@ private:
 	MatchedKeyPoint matched_keypoints_;
 	ImageData image_data_;
 	DesiredRect desired_rectangle_;
+	int current_iteration_;
 	
 	void filter_matches_();
 	bool keypoint_area_check_(int desired_occ_rects);

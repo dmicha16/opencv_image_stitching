@@ -17,9 +17,15 @@ FeatureFindMatch::~FeatureFindMatch() {
 
 void FeatureFindMatch::find_features(const float inc_threshold, int inc_iteriation) {
 
+	current_iteration_ = inc_iteriation;
 	threshold_ = inc_threshold;
 	num_images_ = static_cast <int>(inc_images_.size());
-	image_features_.clear();
+	for (size_t i = 0; i < image_features_.size(); i++) {
+		image_features_[i].descriptors.release();
+		image_features_[i].keypoints.clear();
+		image_features_[i].img_idx = 0;		
+	}
+	
 	image_features_.resize(num_images_);
 	string features_out;
 
@@ -89,7 +95,9 @@ void FeatureFindMatch::find_features(const float inc_threshold, int inc_iteriati
 
 void FeatureFindMatch::set_images(vector<Mat> images) {
 	inc_images_.clear();
-	inc_images_ = images;
+	inc_images_.resize(images.size());
+	for (size_t i = 0; i < inc_images_.size(); i++)
+		images[i].copyTo(inc_images_[i]);
 }
 
 MatchedKeyPoint FeatureFindMatch::get_matched_coordinates() {
@@ -149,8 +157,7 @@ void FeatureFindMatch::match_features_() {
 	LOG("Pairwise matching\n");
 	CLOG("line");
 
-#pragma endregion //local_logging
-	
+#pragma endregion //local_logging	
 
 	Ptr<FeaturesMatcher> current_matcher = makePtr<AffineBestOf2NearestMatcher>(false, try_cuda, match_conf);
 
@@ -309,7 +316,7 @@ void FeatureFindMatch::filter_matches_() {
 
 #pragma endregion // logging	
 	
-	//matches_drawer_(filtered_matches);
+	matches_drawer_(filtered_matches);
 }
 
 int FeatureFindMatch::calculate_treshold_(vector<DMatch> my_matches, float desired_percentage) {
@@ -350,8 +357,8 @@ void FeatureFindMatch::matches_drawer_(vector<DMatch> filtered_matches) {
 	drawMatches(image_data_.img_1, image_data_.keypoints_1, image_data_.img_2, image_data_.keypoints_2, filtered_matches, output_img, Scalar::all(-1),
 		Scalar::all(-1), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 	
-	//String output_location = "../opencv_image_stitching/Images/Results/test_1.jpg";
-	//imwrite(output_location, output_img);
+	String output_location = "../opencv_image_stitching/Images/Results/matches_" + to_string(current_iteration_) + ".jpg";
+	imwrite(output_location, output_img);
 }
 
 void FeatureFindMatch::display_pairwise_matches_(const vector<MatchesInfo> pairwise_matches) {
@@ -383,7 +390,8 @@ void FeatureFindMatch::set_image_features(vector<ImageFeatures> temp_features, i
 	else {
 		for (size_t i = 0; i < num_images_; i++) {		
 			image_features_[i].keypoints.resize(temp_features[i].keypoints.size());
-
+			LOGLN("temp_features[i].keypoints.size(): " << temp_features[i].keypoints.size());
+			LOGLN("inc_images_[0].rows - inc_images_[1].rows: " << (inc_images_[0].rows - inc_images_[1].rows));
 			for (size_t j = 0; j < temp_features[i].keypoints.size(); j++) {
 #pragma region logging
 				//LOGLN("temp_features[i].keypoints.size(): " << temp_features[i].keypoints.size());
@@ -394,36 +402,97 @@ void FeatureFindMatch::set_image_features(vector<ImageFeatures> temp_features, i
 				//LOGLN("image_features_[i].keypoints[j].pt.y: " << image_features_[i].keypoints[j].pt.y);
 				//LOGLN("temp_features[i].keypoints[j].pt.y: " << temp_features[i].keypoints[j].pt.y);
 #pragma endregion //logging
-
+				
 				image_features_[i].keypoints[j].pt.x = temp_features[i].keypoints[j].pt.x;
-				image_features_[i].keypoints[j].pt.y = temp_features[i].keypoints[j].pt.y + (inc_images_[0].rows - inc_images_[1].rows);				
+				image_features_[i].keypoints[j].pt.y = temp_features[i].keypoints[j].pt.y + (inc_images_[0].rows - inc_images_[1].rows);
+				if (image_features_[i].keypoints[j].pt.y <= 0) {
+					throw "shits fucked";
+				}
 			}
 			image_features_[i].descriptors = temp_features[i].descriptors.clone();
 		}
 	}
+
+	LOGLN("image feature 1keypoint: " << image_features_[0].keypoints[1].pt.y);
+	LOGLN(" temp_features[0].keypoints[1].pt.y: " << temp_features[0].keypoints[1].pt.y);
+	LOGLN("should be equal to: " << temp_features[0].keypoints[1].pt.y + (inc_images_[0].rows - inc_images_[1].rows));
+
+	vector<Mat> temp_images(2);
+	Rect roi_rectangle;
+
+	roi_rectangle.x = 0;
+
+	roi_rectangle.width = inc_images_[0].cols;
+	roi_rectangle.height = inc_images_[1].rows;
+
+	if (current_iteration_ == 0) {
+		roi_rectangle.y = 0;
+	}
+	else {
+		roi_rectangle.y = inc_images_[0].rows - inc_images_[1].rows;
+		LOGLN("rect start height; " << (inc_images_[0].rows - inc_images_[1].rows));
+	}
+	//LOGLN("second image starting height : " << second_img_size.y);
+
+	Mat temp_image_holder;
+	inc_images_[0](Rect(roi_rectangle)).copyTo(temp_image_holder);
+
+	Mat temp;
+	inc_images_[0].copyTo(temp);
+	
+	rectangle(temp, Rect(roi_rectangle), Scalar(0, 0, 255), 3, LINE_8, 0);
+
+	for (size_t i = 0; i < image_features_.size(); i++) {
+		for (size_t j = 0; j < image_features_[i].keypoints.size(); j++) {
+			drawMarker(temp, image_features_[i].keypoints[j].pt, Scalar(0, 255, 0), 100, 50, LINE_8);
+		}
+	}
+	
+	String output_location = "../opencv_image_stitching/Images/Results/roi_wtih_points" + to_string(current_iteration_) + ".jpg";
+	imwrite(output_location, temp);
 }
 
 vector<Mat> FeatureFindMatch::calculate_temp_images() {
 
 	vector<Mat> temp_images(2);
-	Rect second_img_size;	
+	Rect roi_rectangle;	
 
-	second_img_size.x = 0;
-	second_img_size.y = inc_images_[0].rows - inc_images_[1].rows;
-	second_img_size.width = inc_images_[0].cols;
-	second_img_size.height = inc_images_[1].rows;
+	roi_rectangle.x = 0;
 
+	roi_rectangle.width = inc_images_[0].cols;
+	roi_rectangle.height = inc_images_[1].rows;
+
+	if (current_iteration_ == 0) {
+		roi_rectangle.y = 0;
+	}
+	else {
+		roi_rectangle.y = inc_images_[0].rows - inc_images_[1].rows;
+		LOGLN("rect start height; " << (inc_images_[0].rows - inc_images_[1].rows));
+	}
 	//LOGLN("second image starting height : " << second_img_size.y);
 	
-	Mat temp_image_holder;	
-	inc_images_[0](Rect(second_img_size)).copyTo(temp_image_holder);	
+	Mat temp_image_holder;
+	inc_images_[0](Rect(roi_rectangle)).copyTo(temp_image_holder);
 
-	temp_images[0] = temp_image_holder;
-	temp_images[1] = inc_images_[1];
+	Mat temp;
+	inc_images_[0].copyTo(temp);
+
+	rectangle(temp, Rect(roi_rectangle), Scalar(0, 0, 255), 3, LINE_8, 0);
+
+	String output_location = "../opencv_image_stitching/Images/Results/roi" + to_string(current_iteration_) + ".jpg";
+	imwrite(output_location, temp);
+	
+	temp_image_holder.copyTo(temp_images[0]);
+	inc_images_[1].copyTo(temp_images[1]);	
 
 	/*LOGLN("temp image size 0: " << temp_images[0].size);
 	LOGLN("temp image size 1: " << temp_images[1].size);*/
 
+	String output_location1 = "../opencv_image_stitching/Images/Results/PROSAC14_temp_images[0]#" + to_string(current_iteration_) + "_0.5.jpg";
+	cv::imwrite(output_location1, temp_images[0]);
+	String output_location2 = "../opencv_image_stitching/Images/Results/PROSAC14_temp_images[1]#" + to_string(current_iteration_) + "_0.5.jpg";
+	cv::imwrite(output_location2, temp_images[1]);
+	current_iteration_ = current_iteration_ + 1;
 	return temp_images;
 }
 
