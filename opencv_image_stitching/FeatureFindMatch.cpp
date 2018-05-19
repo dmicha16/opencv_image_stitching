@@ -15,7 +15,7 @@ FeatureFindMatch::FeatureFindMatch() {
 FeatureFindMatch::~FeatureFindMatch() {
 }
 
-void FeatureFindMatch::find_features(const float inc_threshold) {
+void FeatureFindMatch::find_features(const float inc_threshold, int inc_iteriation) {
 
 	threshold_ = inc_threshold;
 	num_images_ = static_cast <int>(inc_images_.size());
@@ -42,12 +42,17 @@ void FeatureFindMatch::find_features(const float inc_threshold) {
 		temp_features[i].descriptors.release();
 		temp_features[i].keypoints.clear();
 
-		features_out = "Features in image #";
+#pragma region logging
+
+		/*features_out = "Features in image #";
 		LOGLN("image_features_[" << i << "].keypoints.size: " << temp_features[i].keypoints.size());
 		LOGLN("image_features_[" << i << "].descriptors.size: " << temp_features[i].descriptors.size());
-		LOGLN("temp_images size: " << temp_images[i].size);
-		temp_features[i].descriptors.create(50, 100000, UMatUsageFlags::USAGE_ALLOCATE_HOST_MEMORY);
-		temp_features[i].keypoints.reserve(100000);
+		LOGLN("temp_images size: " << temp_images[i].size);*/
+
+#pragma endregion //logging
+
+		/*temp_features[i].descriptors.create(50, 100000, UMatUsageFlags::USAGE_ALLOCATE_HOST_MEMORY);
+		temp_features[i].keypoints.reserve(100000);*/
 
 		detector_desciptor = ORB::create(100000, scaleFactor, nlevels, edgeThreshold, firstLevel, WTA_K, scoreType, patchSize, fastThreshold);
 
@@ -59,23 +64,25 @@ void FeatureFindMatch::find_features(const float inc_threshold) {
 			cout << exception.what() << endl;
 			WINPAUSE;
 		}
-		LOGLN("AFTER temp_images size: " << inc_images_[i].size);
-		LOGLN("AFTER image_features_[" << i << "].keypoints.size: " << temp_features[i].keypoints.size());
-		LOGLN("AFTER image_features_[" << i << "].descriptors.size: " << temp_features[i].descriptors.size());
 
-		temp_features[i].img_idx = i;
+#pragma region logging
+		/*LOGLN("AFTER temp_images size: " << inc_images_[i].size);
+		LOGLN("AFTER image_features_[" << i << "].keypoints.size: " << temp_features[i].keypoints.size());
+		LOGLN("AFTER image_features_[" << i << "].descriptors.size: " << temp_features[i].descriptors.size());*/
+
+		/*temp_features[i].img_idx = i;
 		features_out += to_string(i + 1) + ": " + to_string(temp_features[i].keypoints.size());
 		CLOG(features_out, Verbosity::INFO);
 		LOGLN(features_out);
-		LOGLN("Current ORB iteration: " << i);
+		/*LOGLN("Current ORB iteration: " << i);*/
+
+#pragma endregion //logging
 				
 		detector_desciptor->clear();
 		detector_desciptor.release();
 	}
-	for (size_t i = 0; i < num_images_; i++) {
-		image_features_[i].descriptors = temp_features[i].descriptors.clone();
-		image_features_[i].keypoints = temp_features[i].keypoints;
-	}
+	set_image_features(temp_features, inc_iteriation);
+
 	detector_desciptor.release();
 	match_features_();
 }
@@ -365,29 +372,57 @@ void FeatureFindMatch::display_pairwise_matches_(const vector<MatchesInfo> pairw
 	cout << "-----------------------------" << endl << endl;
 }
 
+void FeatureFindMatch::set_image_features(vector<ImageFeatures> temp_features, int inc_iteriation) {
+
+	if (inc_iteriation == 0) {
+		for (size_t i = 0; i < num_images_; i++) {
+			image_features_[i].descriptors = temp_features[i].descriptors.clone();
+			image_features_[i].keypoints = temp_features[i].keypoints;
+		}
+	}
+	else {
+		for (size_t i = 0; i < num_images_; i++) {		
+			image_features_[i].keypoints.resize(temp_features[i].keypoints.size());
+
+			for (size_t j = 0; j < temp_features[i].keypoints.size(); j++) {
+#pragma region logging
+				//LOGLN("temp_features[i].keypoints.size(): " << temp_features[i].keypoints.size());
+				//LOGLN("image_features_[i].keypoints.size(): " << image_features_[i].keypoints.size());
+				//
+				///*LOGLN(" temp_features[i].keypoints[j].pt.y + (inc_images_[0].rows - inc_images_[1].rows);"
+				//	<< temp_features[i].keypoints[j].pt.y + (inc_images_[0].rows - inc_images_[1].rows));*/
+				//LOGLN("image_features_[i].keypoints[j].pt.y: " << image_features_[i].keypoints[j].pt.y);
+				//LOGLN("temp_features[i].keypoints[j].pt.y: " << temp_features[i].keypoints[j].pt.y);
+#pragma endregion //logging
+
+				image_features_[i].keypoints[j].pt.x = temp_features[i].keypoints[j].pt.x;
+				image_features_[i].keypoints[j].pt.y = temp_features[i].keypoints[j].pt.y + (inc_images_[0].rows - inc_images_[1].rows);				
+			}
+			image_features_[i].descriptors = temp_features[i].descriptors.clone();
+		}
+	}
+}
+
 vector<Mat> FeatureFindMatch::calculate_temp_images() {
 
 	vector<Mat> temp_images(2);
-	Rect second_img_size;
-
-	LOGLN("inc image size 0: " << inc_images_[0].size);
-	LOGLN("inc image size 1: " << inc_images_[1].size);
+	Rect second_img_size;	
 
 	second_img_size.x = 0;
-	second_img_size.y = 0;
+	second_img_size.y = inc_images_[0].rows - inc_images_[1].rows;
 	second_img_size.width = inc_images_[0].cols;
 	second_img_size.height = inc_images_[1].rows;
+
+	//LOGLN("second image starting height : " << second_img_size.y);
 	
-	Mat temp_image_holder;
-	//inc_images_[0].copyTo(temp_image_holder(second_img_size));
-	inc_images_[0](Rect(second_img_size)).copyTo(temp_image_holder);
-	LOGLN("did i get here");
+	Mat temp_image_holder;	
+	inc_images_[0](Rect(second_img_size)).copyTo(temp_image_holder);	
 
 	temp_images[0] = temp_image_holder;
 	temp_images[1] = inc_images_[1];
 
-	LOGLN("temp image size 0: " << temp_images[0].size);
-	LOGLN("temp image size 1: " << temp_images[1].size);
+	/*LOGLN("temp image size 0: " << temp_images[0].size);
+	LOGLN("temp image size 1: " << temp_images[1].size);*/
 
 	return temp_images;
 }

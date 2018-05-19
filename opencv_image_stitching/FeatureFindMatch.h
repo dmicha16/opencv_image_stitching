@@ -23,7 +23,7 @@ public:
 	~FeatureFindMatch();
 
 	void set_rectangle_info(int rows, int columns, float overlap, int desired_occupied);
-	void find_features(const float inc_threshold);
+	void find_features(const float inc_threshold, int inc_iteriation);
 	void set_images(vector<Mat> images);
 	MatchedKeyPoint get_matched_coordinates();
 
@@ -43,6 +43,7 @@ private:
 	int calculate_treshold_(vector<DMatch> matches, float desired_percentage);
 	void matches_drawer_(vector<DMatch> good_matches);
 	void display_pairwise_matches_(const vector<MatchesInfo> pairwise_matches);
+	void set_image_features(vector<ImageFeatures> temp_features, int inc_iteriation);
 	vector<Mat> calculate_temp_images();
 
 	//vector<Mat> createImageSubset(vector<ImageFeatures> &strict_features, vector<MatchesInfo> pairwise_matches, vector<Mat> images);
