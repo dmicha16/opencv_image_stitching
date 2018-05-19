@@ -11,7 +11,6 @@ int main() {
 	INIT_CLOGGING;
 
 	ADD_FILE("clogging.log");
-
 	cv::ocl::setUseOpenCL(false);
 	
 
@@ -46,10 +45,11 @@ int main() {
 		std::cout << "first image size - " << images_to_stitch[0].size << endl;
 		std::cout << "second image size - " << images_to_stitch[1].size << endl;
 
-		int offsetX = images_to_stitch[1].cols *1.5;
+		/*int offsetX = images_to_stitch[1].cols *1.5;
 		cout << "offsetX = " << offsetX << endl;
 		images_to_stitch[0] = warper.translate(images_to_stitch[0], offsetX, 0);
 		images_to_stitch[1] = warper.translate(images_to_stitch[1], offsetX, 0);
+		*/
 
 #pragma region output_current_images
 		//Mat img1, img2, raw;
@@ -77,19 +77,17 @@ int main() {
 
 		/******************************************* WARPING *******************************************/
 
-		Mat warped_img = warper.warp(images_to_stitch[0], matched_key_points);
-		/*Mat warp;
-		resize(warped_img, warp, cvSize(0, 0), 0.4, 0.4);
-		string warp_name = "warped image" + to_string(i);*/
-		//imshow(warp_name, warp);
+		Mat warped_img = warper.warp(images_to_stitch[1], matched_key_points);
+		
 		/****************************************** STITCHING *******************************************/
 
-		stitched_img = stitcher.customMerger(images_to_stitch[1], warped_img);
+		stitched_img = stitcher.customMerger(images_to_stitch[0], warped_img);
 
 		if (i < (raw_images.size() - 2)) {
 			images_to_stitch[0].release();
 			images_to_stitch[1].release();
 
+			/*
 			Mat reduced_stitched_img;
 			if (i == 0) {
 				double correction = 0.10;
@@ -103,26 +101,19 @@ int main() {
 			}
 
 			images_to_stitch[0] = reduced_stitched_img;
+			*/
+			images_to_stitch[0] = stitched_img;
 			images_to_stitch[1] = raw_images[i + 2];
 
+			String output_location = "../opencv_image_stitching/Images/Results/PROSAC11_intermediary#" + to_string(i+1) + "_0.5.jpg";
+			cv::imwrite(output_location, stitched_img);
+
 			stitched_img.release();
-			/*Mat inter;
-			resize(images_to_stitch[0], inter, cvSize(0, 0), 0.4, 0.4);
-			string int_name = "inter image" + to_string(i);*/
-			//imshow(int_name, inter);
-			//break;
-			String output_location = "../opencv_image_stitching/Images/Results/PROSAC7_intermediary#" + to_string(i+1) + "_0.5.jpg";
-			cv::imwrite(output_location, reduced_stitched_img);
 		}
 	}
 
-	//Mat stitched;
-	//resize(stitched_img, stitched, cvSize(0, 0), 0.01, 0.01);
-	//imshow("Stitched image", stitched);
-
-	String output_location = "../opencv_image_stitching/Images/Results/PROSAC7_0.5.jpg";
+	String output_location = "../opencv_image_stitching/Images/Results/PROSAC11_0.5.jpg";
 	cv::imwrite(output_location, stitched_img);
-
 
 	std::cout << endl << "------------ MISSION COMPLETE ------------" << endl;
 	WINPAUSE;

@@ -11,9 +11,9 @@ public:
 	~Warping();
 
 private:
-
 	int iteration = 0;
 	double dist;
+	int i = 1;
 
 	int prev_offset_y_ = 0;
 	int new_offset_y_ = 0;
