@@ -269,3 +269,4 @@ opencv_image_stitching/Composition.cpp
 opencv_image_stitching/Composition.h
 opencv_image_stitching/Composition.h
 >>>>>>> c6654fb00ed4b57e4a7c86ec6e7c94e7a1cb2657
+*.vcxproj
