@@ -34,7 +34,7 @@ void ImageReader::read_images_(const string path) {
 	images_.resize(num_images_);
 	images_ = upload_images_(images_);
 	for (size_t i = 0; i < num_images_; i++) {
-		resize(images_[i], images_[i], cvSize(0, 0), 1, 1);
+		resize(images_[i], images_[i], cvSize(0, 0), 0.55, 0.55);
 	}
 }
 
