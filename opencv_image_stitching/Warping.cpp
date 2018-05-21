@@ -73,7 +73,7 @@ Mat Warping::perspective_warping_(Mat &img) {
 	//Mat h = findHomography(base_image_pts_, dst_pts_, LMEDS);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, dist);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, 8);
-	Mat h = findHomography(base_image_pts_, dst_pts_, RHO, dist_);
+	Mat h = findHomography(base_image_pts_, dst_pts_, RHO, dist3);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RHO, 24);
 	//cout << endl << "homography = " << endl << h << endl << endl;
 
