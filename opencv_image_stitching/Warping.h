@@ -11,13 +11,8 @@ public:
 	~Warping();
 
 private:
-	int iteration = 0;
-	double dist;
-	int i = 1;
-
-	int prev_offset_y_ = 0;
-	int new_offset_y_ = 0;
-	int num_features_;
+	int iteration_;
+	double dist_;
 	vector<Point2f> base_image_pts_;
 	vector<Point2f> dst_pts_;
 	Mat perspective_warping_(Mat &img);
