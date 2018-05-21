@@ -380,11 +380,6 @@ void FeatureFindMatch::display_pairwise_matches_(const vector<MatchesInfo> pairw
 }
 
 void FeatureFindMatch::set_image_features(vector<ImageFeatures> temp_features, int inc_iteriation) {
-
-	/*for (size_t i = 0; i < num_images_; i++) {
-		image_features_[i].descriptors = temp_features[i].descriptors.clone();
-		image_features_[i].keypoints = temp_features[i].keypoints;
-	}*/
 	
 	if (inc_iteriation == 0) {
 		for (size_t i = 0; i < num_images_; i++) {
@@ -397,22 +392,15 @@ void FeatureFindMatch::set_image_features(vector<ImageFeatures> temp_features, i
 			image_features_[i].keypoints.resize(temp_features[i].keypoints.size());
 			image_features_[i].descriptors = temp_features[i].descriptors.clone();
 		}
-		//LOGLN("temp_features[i].keypoints.size(): " << temp_features[i].keypoints.size());
 		for (size_t j = 0; j < temp_features[0].keypoints.size(); j++) {
 			image_features_[0].keypoints[j].pt.x = temp_features[0].keypoints[j].pt.x;
 			image_features_[0].keypoints[j].pt.y = temp_features[0].keypoints[j].pt.y + (inc_images_[0].rows - inc_images_[1].rows);
-			//image_features_[0].keypoints[j].pt.y = temp_features[0].keypoints[j].pt.y + (int)(inc_images_[0].rows - (inc_images_[1].rows*0.9));
 		}
 		for (size_t j = 0; j < temp_features[1].keypoints.size(); j++) {
 			image_features_[1].keypoints[j].pt.x = temp_features[1].keypoints[j].pt.x;
 			image_features_[1].keypoints[j].pt.y = temp_features[1].keypoints[j].pt.y;
 		}
 	}
-
-	//LOGLN("inc_images_[0].rows - inc_images_[1].rows: " << (inc_images_[0].rows - inc_images_[1].rows));
-	LOGLN("image feature 1keypoint: " << image_features_[0].keypoints[1].pt.y);
-	LOGLN("image feature 1keypoint Should be equal to: " << temp_features[0].keypoints[1].pt.y + (int)(inc_images_[0].rows - (inc_images_[1].rows)));
-	//LOGLN("temp_features[0].keypoints[1].pt.y: " << temp_features[0].keypoints[1].pt.y);
 
 	/*
 	vector<Mat> temp_images(2);
@@ -459,10 +447,7 @@ vector<Mat> FeatureFindMatch::calculate_temp_images() {
 	roi_rectangle.x = 0;
 	roi_rectangle.y = inc_images_[0].rows - inc_images_[1].rows;
 	roi_rectangle.height = inc_images_[1].rows;
-
 	roi_rectangle.width = inc_images_[0].cols;
-
-	//LOGLN("second image starting height : " << second_img_size.y);
 	
 	Mat temp_image_holder;
 	inc_images_[0](Rect(roi_rectangle)).copyTo(temp_image_holder);
@@ -481,12 +466,12 @@ vector<Mat> FeatureFindMatch::calculate_temp_images() {
 	/*LOGLN("temp image size 0: " << temp_images[0].size);
 	LOGLN("temp image size 1: " << temp_images[1].size);*/
 
-	
+	/*
 	String output_location1 = "../opencv_image_stitching/Images/Results/PROSAC11_temp_images[0]#" + to_string(current_iteration_) + "_0.5.jpg";
 	cv::imwrite(output_location1, temp_images[0]);
 	String output_location2 = "../opencv_image_stitching/Images/Results/PROSAC11_temp_images[1]#" + to_string(current_iteration_) + "_0.5.jpg";
 	cv::imwrite(output_location2, temp_images[1]);
-	
+	*/
 	current_iteration_ = current_iteration_ + 1;
 
 	return temp_images;
