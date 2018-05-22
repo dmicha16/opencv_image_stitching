@@ -18,6 +18,7 @@ int main() {
 	Warping warper;
 	FeatureFindMatch finder;
 	ImageReader image_reader;
+	Undistorter undistorter;
 
 	/******************************************* Reader *******************************************/
 
@@ -25,8 +26,7 @@ int main() {
 
 	/**************************************** UNDISTORTION *****************************************/
 
-	//Undistorter undistorter;
-	//vector<Mat> undist_images = undistorter.undistort_images(raw_images);
+	vector<Mat> undist_images = undistorter.undistort_images(raw_images);
 
 	vector<Mat> images_to_stitch;
 	images_to_stitch.resize(2);
@@ -34,10 +34,10 @@ int main() {
 	Mat stitched_img;
 
 	for (size_t i = 0; i < 2; i++) {
-		images_to_stitch[i] = raw_images[i];
+		images_to_stitch[i] = undist_images[i];
 	}
 
-	for (size_t i = 0; i < raw_images.size() - 1; i++) {
+	for (size_t i = 0; i < undist_images.size() - 1; i++) {
 
 		/************************************** INIT CURRENT IMAGES *************************************/
 		std::cout << endl << "Number of Iteration: " << i + 1 << endl;
@@ -83,16 +83,16 @@ int main() {
 			images_to_stitch[1].release();
 
 			images_to_stitch[0] = stitched_img;
-			images_to_stitch[1] = raw_images[i + 2];
+			images_to_stitch[1] = undist_images[i + 2];
 
-			String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_3_intermediary#" + to_string(i+1) + "_0.5.jpg";
+			String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_intermediary#" + to_string(i+1) + "_0.5.jpg";
 			cv::imwrite(output_location, stitched_img);
 
 			stitched_img.release();
 		}
 	}
 
-	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_3_0.5.jpg";
+	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_0.5.jpg";
 	cv::imwrite(output_location, stitched_img);
 
 	std::cout << endl << "------------ MISSION COMPLETE ------------" << endl;
