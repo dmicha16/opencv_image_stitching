@@ -12,56 +12,22 @@ Mat Warping::warp(Mat &image, MatchedKeyPoint features) {
 
 Mat Warping::perspective_warping_(Mat &img) {
 	cout << "Perspective() {" << endl;
-	/*
-	vector<Point2f> dst_pts_out;
-	vector<Point2f> base_image_pts_out;
-	normalize(dst_pts_, dst_pts_out, 100, 0, NORM_L2, -1, noArray());
-	normalize(base_image_pts_, base_image_pts_out, 100, 0, NORM_L2, -1, noArray());
-	double dist1 = norm(base_image_pts_out, dst_pts_out);
 
-	vector<Point2f> dst_pts_out1;
-	vector<Point2f> base_image_pts_out1;
-	normalize(dst_pts_, dst_pts_out1, 1, 10, NORM_L2, -1, noArray());
-	normalize(base_image_pts_, base_image_pts_out1, 10, 0, NORM_L2, -1, noArray());
-	double dist2 = norm(base_image_pts_out1, dst_pts_out1, NORM_L1);
-	*/
+	// Finding the reprojection threshold
 	vector<Point2f> dst_pts_out2;
 	vector<Point2f> base_image_pts_out2;
 	normalize(dst_pts_, dst_pts_out2, 1000, 0, NORM_L1, -1, noArray());
 	normalize(base_image_pts_, base_image_pts_out2, 1000, 0, NORM_L1, -1, noArray());
-	double dist3 = norm(base_image_pts_out2, dst_pts_out2);
-	/*
-	vector<Point2f> dst_pts_out3;
-	vector<Point2f> base_image_pts_out3;
-	normalize(dst_pts_, dst_pts_out3, 100, 0, NORM_L1, -1, noArray());
-	normalize(base_image_pts_, base_image_pts_out3, 100, 0, NORM_L1, -1, noArray());
-	double dist4 = norm(base_image_pts_out3, dst_pts_out3, NORM_L1);
-	
-	vector<Point2f> dst_pts_out4;
-	vector<Point2f> base_image_pts_out4;
-	normalize(dst_pts_, dst_pts_out4, 10, 0, NORM_L2);
-	normalize(base_image_pts_, base_image_pts_out4, 10, 0, NORM_L2);
-	double dist5 = norm(base_image_pts_out4, dst_pts_out4, cv::NORM_L2SQR);
-	*/
-	//std::cout << "dist1 = " << dist1 << endl;
-	//std::cout << "dist2 = " << dist2 << endl;
-	//std::cout << "dist3 = " << dist3 << endl;
-	//std::cout << "dist4 = " << dist4 << endl;
-	//std::cout << "dist5 = " << dist5 << endl;
+	double dist = norm(base_image_pts_out2, dst_pts_out2);
 
-	if (iteration_ == 1 || dist_ > dist3) {
-		dist_ = dist3;
-	}
-
-	std::cout << "dist = " << dist_ << endl;
+	std::cout << "dist = " << dist << endl;
 
 	// Finding the needed canvas size 
 	vector<int> alt_offsety;
+	int offsety_sum = 0;
 	for (size_t i = 0; i < dst_pts_.size(); i++) {
 		alt_offsety.push_back(abs(base_image_pts_[i].y - dst_pts_[i].y));
 	}
-
-	int offsety_sum = 0;
 	for (size_t i = 0; i < dst_pts_.size(); i++) {
 		if (alt_offsety[i] > offsety_sum) {
 			offsety_sum = alt_offsety[i];
@@ -73,7 +39,7 @@ Mat Warping::perspective_warping_(Mat &img) {
 	//Mat h = findHomography(base_image_pts_, dst_pts_, LMEDS);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, dist);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, 8);
-	Mat h = findHomography(base_image_pts_, dst_pts_, RHO, dist3);
+	Mat h = findHomography(base_image_pts_, dst_pts_, RHO, dist);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RHO, 24);
 	//cout << endl << "homography = " << endl << h << endl << endl;
 
@@ -82,7 +48,6 @@ Mat Warping::perspective_warping_(Mat &img) {
 	dst_pts_.clear();
 
 	std::cout << "Warping perspective...." << endl;
-
 	// Use homography to warp image
 	Mat warpedImage;
 	try{
@@ -93,7 +58,7 @@ Mat Warping::perspective_warping_(Mat &img) {
 		std::cout << e.what() << endl;
 	}
 
-	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_3_warped#" + to_string(iteration_) + "_0.5.jpg";
+	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_warped#" + to_string(iteration_) + "_0.5.jpg";
 	cv::imwrite(output_location, warpedImage);
 
 	iteration_ = iteration_ + 1;

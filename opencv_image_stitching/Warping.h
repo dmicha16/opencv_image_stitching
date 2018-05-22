@@ -12,7 +12,6 @@ public:
 
 private:
 	int iteration_;
-	double dist_;
 	vector<Point2f> base_image_pts_;
 	vector<Point2f> dst_pts_;
 	Mat perspective_warping_(Mat &img);
