@@ -35,20 +35,18 @@ Mat Warping::perspective_warping_(Mat &img) {
 	}
 	std::cout << "offsetRows = " << offsety_sum << endl;
 
-	// Find homography (pixel != black)
+	// Find homography
 	//Mat h = findHomography(base_image_pts_, dst_pts_, LMEDS);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, dist);
-	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, 8);
 	Mat h = findHomography(base_image_pts_, dst_pts_, RHO, dist);
-	//Mat h = findHomography(base_image_pts_, dst_pts_, RHO, 24);
 	//cout << endl << "homography = " << endl << h << endl << endl;
 
 	// Clearing the splitted vectors
 	base_image_pts_.clear();
 	dst_pts_.clear();
 
-	std::cout << "Warping perspective...." << endl;
 	// Use homography to warp image
+	std::cout << "Warping perspective...." << endl;
 	Mat warpedImage;
 	try{
 	warpPerspective(img, warpedImage, h, Size(img.cols, img.rows + offsety_sum + (iteration_ * 100)));
