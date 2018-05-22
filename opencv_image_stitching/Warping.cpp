@@ -39,18 +39,19 @@ Mat Warping::perspective_warping_(Mat &img) {
 	//Mat h = findHomography(base_image_pts_, dst_pts_, LMEDS);
 	//Mat h = findHomography(base_image_pts_, dst_pts_, RANSAC, dist);
 	Mat h = findHomography(base_image_pts_, dst_pts_, RHO, dist);
+	
+	double offset_y = h.at<double>(1,2);
 	//cout << endl << "homography = " << endl << h << endl << endl;
 
 	// Clearing the splitted vectors
 	base_image_pts_.clear();
 	dst_pts_.clear();
 
-	// Use homography to warp image
+	// Warping the image using the homography matrix
 	std::cout << "Warping perspective...." << endl;
 	Mat warpedImage;
 	try{
-	warpPerspective(img, warpedImage, h, Size(img.cols, img.rows + offsety_sum + (iteration_ * 100)));
-	//warpPerspective(img, warpedImage, h, Size(img.cols, img.rows + offsety_sum + 300)); 
+	warpPerspective(img, warpedImage, h, Size(img.cols, img.rows + offsety_sum));
 	}
 	catch (const std::exception& e) {
 		std::cout << e.what() << endl;
@@ -68,13 +69,16 @@ Mat Warping::perspective_warping_(Mat &img) {
 void Warping::vector_split_(MatchedKeyPoint features) {
 	cout << "vector_split_() {" << endl;
 
+	// Resizing the vectors to fit the incoming vectors
 	base_image_pts_.resize(features.image_1.size());
 	dst_pts_.resize(features.image_2.size());
 
+	// Populating the vectors 
 	for (size_t i = 0; i < features.image_1.size(); i++) {
 		base_image_pts_[i] = features.image_2[i];
 		dst_pts_[i] = features.image_1[i];
 	}
+
 	//cout << "pts_base_image = " << endl << baseImagePts_ << endl << endl;
 	//cout << "pts_dst = " << endl << dstPts_ << endl << endl;
 	cout << "}" << endl;
