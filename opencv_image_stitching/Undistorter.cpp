@@ -6,8 +6,11 @@ Undistorter::Undistorter() {
 
 vector<Mat> Undistorter::undistort_images(vector<Mat> images) {
 	int num_images = static_cast <int> (images.size());
-	cout << "What focal length where the images taken at? 24, 70 or 105? \n";
+	cout << "Input the focal length: 24, 70 or 105" << endl;
 	bool valid_focal = false;
+	int focal_choice;
+	Mat dist_coef_;
+	Mat K_;
 
 	while (!valid_focal)
 	{
