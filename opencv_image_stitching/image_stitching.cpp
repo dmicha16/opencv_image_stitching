@@ -27,6 +27,10 @@ int main() {
 	/**************************************** UNDISTORTION *****************************************/
 
 	vector<Mat> undist_images = undistorter.undistort_images(raw_images);
+	for (size_t i = 0; i < raw_images.size(); i++)
+	{
+		raw_images[i].release();
+	}
 
 	vector<Mat> images_to_stitch;
 	images_to_stitch.resize(2);
