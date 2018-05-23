@@ -89,14 +89,14 @@ int main() {
 			images_to_stitch[0] = stitched_img;
 			images_to_stitch[1] = undist_images[i + 2];
 
-			String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_intermediary#" + to_string(i+1) + "_0.5.jpg";
+			String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_intermediary#" + to_string(i+1) + "_105mm.jpg";
 			cv::imwrite(output_location, stitched_img);
 
 			stitched_img.release();
 		}
 	}
 
-	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_0.5.jpg";
+	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_105mm.jpg";
 	cv::imwrite(output_location, stitched_img);
 
 	std::cout << endl << "------------ MISSION COMPLETE ------------" << endl;
