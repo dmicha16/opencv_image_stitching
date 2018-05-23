@@ -57,7 +57,7 @@ Mat Warping::perspective_warping_(Mat &img) {
 		std::cout << e.what() << endl;
 	}
 
-	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_warped#" + to_string(iteration_) + "_0.5.jpg";
+	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_warped#" + to_string(iteration_) + "_105mm.jpg";
 	cv::imwrite(output_location, warpedImage);
 
 	iteration_ = iteration_ + 1;

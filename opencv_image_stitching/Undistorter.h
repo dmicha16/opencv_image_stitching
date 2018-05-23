@@ -6,10 +6,5 @@ public:
 	Undistorter();	
 	~Undistorter();
 	vector<Mat> undistort_images(vector<Mat> images);
-	//int focal_choice;
-
-private:
-	//Mat dist_coef_;
-	//Mat K_;  
 };
 
