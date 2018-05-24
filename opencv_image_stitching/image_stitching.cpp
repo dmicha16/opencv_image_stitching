@@ -6,7 +6,6 @@
 #include "Stitcher.h"
 
 
-
 int main() {
 	INIT_CLOGGING;
 
@@ -24,6 +23,29 @@ int main() {
 
 	vector<Mat> raw_images = image_reader.get_images();
 
+	/************************************* ROTATING THE IMAGES *************************************/
+
+	std::string rotate_choice;
+	bool valid_choice = false;
+	std::cout << "Do you want to rotate the images 180deg? Enter 'yes' or 'no'." << std::endl;
+	while (valid_choice == false){
+		getline(std::cin, rotate_choice);
+		if (rotate_choice == "yes") {
+			for (size_t i = 0; i < raw_images.size(); i++)
+			{
+				cv::rotate(raw_images[i], raw_images[i], ROTATE_180);
+			}
+			valid_choice = true;
+		}
+		else if (rotate_choice == "no") {
+			valid_choice = true;
+		}
+		else
+		{
+			std::cout << "invalid input..... try again" << endl;
+		}
+	}
+
 	/**************************************** UNDISTORTION *****************************************/
 
 	vector<Mat> undist_images = undistorter.undistort_images(raw_images);
@@ -36,7 +58,6 @@ int main() {
 	images_to_stitch.resize(2);
 
 	Mat stitched_img;
-
 	for (size_t i = 0; i < 2; i++) {
 		images_to_stitch[i] = undist_images[i];
 	}
@@ -95,6 +116,8 @@ int main() {
 			stitched_img.release();
 		}
 	}
+
+	cv::rotate(stitched_img, stitched_img, ROTATE_180);
 
 	String output_location = "../opencv_image_stitching/Images/Results/PROSAC_dist_105mm.jpg";
 	cv::imwrite(output_location, stitched_img);
